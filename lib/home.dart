@@ -278,14 +278,16 @@ class Subtitle extends StatelessWidget {
         }
         if (snapshot.hasData) {
           final participants = snapshot.data!.docs;
+          //print(participants.first.data().toString());
           String userStatus = '';
-          final participant = participants.firstWhere(
+          final participant = participants
+              .first; /*first(
             (snap) {
               return (snap.id != userID &&
                   (snap['status'] == 'typing' ||
                       snap['status'] == 'recording audio'));
             },
-          );
+          )*/
           if (participant != null) {
             if (isGroupChat) {
               userStatus = '${participant['name']} is ' + participant['status'];

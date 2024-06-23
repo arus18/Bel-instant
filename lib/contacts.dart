@@ -28,12 +28,12 @@ class Contacts extends StatefulWidget {
   final bool isGroupChat;
   final bool sendGroupInvite;
   final String displayPictureUrl;
-  final String conversationID;
+  String conversationID = "";
   final bool forwardSingleImage;
   final String fileName;
   final String fileUrl;
   final int fileSize;
-  const Contacts({
+  Contacts({
     Key? key,
     required this.user,
     this.newGroupInvite = false,
@@ -80,9 +80,9 @@ class ContactsState extends State<Contacts> {
   ContactsState(this.user, this.groupDisplayPicture, this.groupName,
       this.newBroadcast, this.forwardMsgList, this.forward, this.isGroupChat,
       {required this.newGroupInvite});
-  final bool newGroupInvite;
+  bool newGroupInvite = false;
   final bool forward;
-  final bool newBroadcast;
+  bool newBroadcast = false;
   final ref = FirebaseFirestore.instance;
   @override
   void initState() {
@@ -107,84 +107,75 @@ class ContactsState extends State<Contacts> {
       actions: <Widget>[],
     );
     return Scaffold(
-        bottomNavigationBar:
-            Container(height: 50, child: Center(child: Text('Ad'))),
-        persistentFooterButtons: <Widget>[
-          (newGroupInvite || newBroadcast)
-              ? Container(
-                  height: 5,
-                )
-              : TextButton(
-                  style: TextButton.styleFrom(
-                    backgroundColor: Colors.yellow,
-                    padding: EdgeInsets.all(2),
-                  ),
-                  child: Text('New group'),
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (BuildContext context) =>
-                                InitializeDisplayPictureName(
-                                  forNewGroup: true,
-                                  user: user,
-                                )));
-                  },
+        bottomNavigationBar: Container(
+            height: 50,
+            child: Center(
+                child: Row(children: <Widget>[
+              (newGroupInvite || newBroadcast)
+                  ? Container(
+                      height: 5,
+                    )
+                  : IconButton(
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.yellow,
+                        padding: EdgeInsets.all(2),
+                      ),
+                      onPressed: () {
+                        print("clicked");
+                        setState(() {
+                          refreshingContacts = true;
+                        });
+                        refreshContacts(user);
+                        setState(() {
+                          refreshingContacts = false;
+                        });
+                      },
+                      icon: Icon(Icons.refresh),
+                    ),
+              TextButton(
+                style: TextButton.styleFrom(
+                  backgroundColor: Colors.yellow,
+                  padding: EdgeInsets.all(2),
                 ),
-          TextButton(
-            style: TextButton.styleFrom(
-              backgroundColor: Colors.yellow,
-              padding: EdgeInsets.all(2),
-            ),
-            child: Text('Invite'),
-            onPressed: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (BuildContext context) {
-                return InviteContacts();
-              }));
-            },
-          ),
-          TextButton(
-            style: TextButton.styleFrom(
-              backgroundColor: Colors.yellow,
-              padding: EdgeInsets.all(2),
-            ),
-            onPressed: () async {
-              setState(() {
-                refreshingContacts = true;
-              });
-              await refreshContacts(user);
-              setState(() {
-                refreshingContacts = false;
-              });
-            },
-            child: Icon(Icons.refresh),
-          ),
-          newBroadcast
-              ? TextButton(
-                  style: TextButton.styleFrom(
-                    backgroundColor: Colors.yellow,
-                    padding: EdgeInsets.all(2),
-                  ),
-                  child: Text('Groups'),
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (BuildContext context) => GroupChats(
-                                  user: user,
-                                  forwardMsgList: forwardMsgList,
-                                  forwardSingleImage: widget.forwardSingleImage,
-                                  fileName: widget.fileName,
-                                  fileSize: widget.fileSize,
-                                  fileUrl: widget.fileUrl,
-                                )));
-                  },
-                )
-              : Container(
-                  height: 5,
-                )
-        ],
+                child: Text('New group'),
+                onPressed: () {
+                  print("clicked");
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (BuildContext context) =>
+                              InitializeDisplayPictureName(
+                                forNewGroup: true,
+                                user: user,
+                              )));
+                },
+              ),
+              newBroadcast
+                  ? TextButton(
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.yellow,
+                        padding: EdgeInsets.all(2),
+                      ),
+                      child: Text('Groups'),
+                      onPressed: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (BuildContext context) => GroupChats(
+                                      user: user,
+                                      forwardMsgList: forwardMsgList,
+                                      forwardSingleImage:
+                                          widget.forwardSingleImage,
+                                      fileName: widget.fileName,
+                                      fileSize: widget.fileSize,
+                                      fileUrl: widget.fileUrl,
+                                    )));
+                      },
+                    )
+                  : Container(
+                      height: 5,
+                    )
+            ]))),
         bottomSheet: refreshingContacts
             ? Container(
                 color: Colors.yellow,
@@ -217,7 +208,7 @@ class ContactsState extends State<Contacts> {
                             if (!widget.sendGroupInvite) {
                               Navigator.pop(context);
                             }
-                            if (widget.sendGroupInvite) {
+                            /*if (widget.sendGroupInvite) {
                               Navigator.of(context).pushAndRemoveUntil(
                                   MaterialPageRoute(
                                     builder: (context) => HomeState(
@@ -243,7 +234,7 @@ class ContactsState extends State<Contacts> {
                                       contactSnapshot['regionCode'];
                                   final participantSnapshot = await ref
                                       .collection('conversations')
-                                      .doc(widget.conversationID)
+                                      .doc(conversationID)
                                       .collection('participants')
                                       .doc(userID)
                                       .get();
@@ -256,8 +247,8 @@ class ContactsState extends State<Contacts> {
                                   }
                                 }
                               }
-                            }
-                            if (newGroupInvite) {
+                            }*/
+                            /*if (newGroupInvite) {
                               _createNewGroupConversation(context);
                             } else if (newBroadcast) {
                               final conversationIDlist =
@@ -335,7 +326,7 @@ class ContactsState extends State<Contacts> {
                                   );
                                 }
                               });
-                            }
+                            }*/
                           },
                           label: newBroadcast ? Text('Send') : Text('Invite'),
                         ),
@@ -589,7 +580,7 @@ class DBContactCardState extends State<DBContactCard> {
     final contactName = contactSnapshot['contactName'] ?? '';
     final contactPhoneNumber = contactSnapshot['phoneNumber'] ?? '';
     final userID = contactSnapshot.id;
-    final conversationID = contactSnapshot['conversationID'];
+    final conversationID = contactSnapshot!['conversationID'] ?? '';
     final regionCode = contactSnapshot['regionCode'];
     final isBlocked = contactSnapshot['blocked'] ?? false;
     contactState._contactIDList.add(contactSnapshot.id);
@@ -604,7 +595,7 @@ class DBContactCardState extends State<DBContactCard> {
             }
           });
         } else {
-          if (conversationID != null && !loadingConversation) {
+          if (conversationID.toString().isNotEmpty && !loadingConversation) {
             setState(() {
               loadingConversation = true;
             });
@@ -747,6 +738,7 @@ Future<String> _createNewConversation(
     'token': fcmToken,
     'status': 'offline',
     'regionCode': regionCode,
+    'lastseen': 0
   }, SetOptions(merge: true));
   ref
       .collection('conversations')
@@ -760,7 +752,8 @@ Future<String> _createNewConversation(
     'displayPictureUrl': user.profilePhotUrl,
     'token': user.token,
     'status': 'offline',
-    'regionCode': user.regionCode
+    'regionCode': user.regionCode,
+    'lastseen': 0
   }, SetOptions(merge: true));
 
   ref
@@ -776,7 +769,11 @@ Future<String> _createNewConversation(
     'displayPictureUrl': profilePhotoUrl,
     'phoneNumber': contactPhoneNumber,
     'lastReadMsgTimestamp': 0,
-    'timeDelayTimestamp': 0
+    'timeDelayTimestamp': 0,
+    'groupInvite': false,
+    'groupChat': false,
+    'blocked': false,
+    'lastSeen': 0
   }, SetOptions(merge: true));
   ref
       .collection('users')
@@ -801,7 +798,11 @@ Future<String> _createNewConversation(
     'displayPictureUrl': user.profilePhotUrl,
     'phoneNumber': user.phoneNumber,
     'lastReadMsgTimestamp': 0,
-    'timeDelayTimestamp': 0
+    'timeDelayTimestamp': 0,
+    'groupInvite': false,
+    'groupChat': false,
+    'blocked': false,
+    'lastSeen': 0
   }, SetOptions(merge: true));
   ref
       .collection('users')

@@ -4,7 +4,12 @@ import 'user.dart';
 import 'countrycodes.dart';
 
 Future<void> refreshContacts(User user) async {
-  final Iterable<Contact> contacts = await FlutterContacts.getContacts();
+  print("called");
+  Iterable<Contact> contacts = [];
+  if (await FlutterContacts.requestPermission(readonly: true)) {
+    contacts = await FlutterContacts.getContacts(withProperties: true);
+    print(contacts.length);
+  }
   final users = FirebaseFirestore.instance
       .collection('users')
       .doc(user.regionCode)
@@ -47,7 +52,9 @@ Future<void> updateContacts(User user, String phoneNumber, List contacts,
               'displayPictureUrl': userSnapshot['displayPictureUrl'],
               'contactName': userSnapshot['name'],
               'phoneNumber': userSnapshot['phoneNumber'],
-              'regionCode': userSnapshot['regionCode']
+              'regionCode': userSnapshot['regionCode'],
+              'conversationID': '',
+              'blocked': false
             }, SetOptions(merge: true));
             break;
           }
@@ -75,7 +82,9 @@ Future<void> updateContacts(User user, String phoneNumber, List contacts,
             'displayPictureUrl': userSnapshot['displayPictureUrl'],
             'contactName': userSnapshot['name'],
             'phoneNumber': userSnapshot['phoneNumber'],
-            'regionCode': userSnapshot['regionCode']
+            'regionCode': userSnapshot['regionCode'],
+            'conversationID': '',
+            'blocked': false
           }, SetOptions(merge: true));
         }
       }

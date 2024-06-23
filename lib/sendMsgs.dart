@@ -26,7 +26,10 @@ forwardText(
       'msg': msgSnapshot['msg'],
       'userID': userID,
       'timestamp': timestamp,
-      'name': user.userName
+      'name': user.userName,
+      'isCustom': false,
+      'fileSize': 0,
+      'twentiethMsgTimestamp': 0
     }, SetOptions(merge: true)));
     setUnreadCount(
       conversationID,
@@ -60,7 +63,8 @@ forwardImage(
         'userID': userID,
         'timestamp': timestamp,
         'name': user.userName,
-        'fileSize': msgSnapshot['fileSize']
+        'fileSize': msgSnapshot['fileSize'],
+        'twentiethMsgTimestamp': 0
       }, SetOptions(merge: true)));
       setUnreadCount(
         conversationID,
@@ -77,7 +81,8 @@ forwardImage(
         'userID': userID,
         'timestamp': timestamp,
         'name': user.userName,
-        'fileSize': msgSnapshot['fileSize']
+        'fileSize': msgSnapshot['fileSize'],
+        'twentiethMsgTimestamp': 0
       }, SetOptions(merge: true)));
       setUnreadCount(
         conversationID,
@@ -112,7 +117,8 @@ forwardAudio(
       'timestamp': timestamp,
       'name': user.userName,
       'fileSize': msgSnapshot['fileSize'],
-      'duration': msgSnapshot['duration']
+      'duration': msgSnapshot['duration'],
+      'twentiethMsgTimestamp': 0
     }, SetOptions(merge: true)));
     setUnreadCount(
       conversationID,
@@ -146,7 +152,10 @@ sendText(
       'msg': msg,
       'userID': userID,
       'timestamp': timestamp,
-      'name': user.userName
+      'name': user.userName,
+      'isCustom': false,
+      'fileSize': 0,
+      'twentiethMsgTimestamp': 0
     }, SetOptions(merge: true)));
   } else {
     await (msgs.doc(msgID).set({
@@ -154,7 +163,10 @@ sendText(
       'msg': msg,
       'userID': userID,
       'timestamp': timestamp,
-      'name': user.userName
+      'name': user.userName,
+      'isCustom': false,
+      'fileSize': 0,
+      'twentiethMsgTimestamp': 0
     }, SetOptions(merge: true)));
   }
   setUnreadCount(
@@ -215,7 +227,8 @@ sendImage(
         'userID': userID,
         'timestamp': timestamp,
         'fileSize': fileSizeMap,
-        'name': user.userName
+        'name': user.userName,
+        'twentiethMsgTimestamp': 0
       }, SetOptions(merge: true)));
       setUnreadCount(
         conversationID,
@@ -236,7 +249,8 @@ sendImage(
           'userID': userID,
           'timestamp': timestamp,
           'fileSize': fileSizeMap[fileName],
-          'name': user.userName
+          'name': user.userName,
+          'twentiethMsgTimestamp': 0
         }, SetOptions(merge: true)));
         setUnreadCount(
           conversationID,
@@ -292,7 +306,8 @@ sendAudio(
         'timestamp': timestamp,
         'fileSize': fileSizeMap[fileName],
         'name': user.userName,
-        'duration': duration
+        'duration': duration,
+        'twentiethMsgTimestamp': 0
       }, SetOptions(merge: true)));
       setUnreadCount(
         conversationID,

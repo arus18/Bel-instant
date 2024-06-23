@@ -213,7 +213,7 @@ class Conversation extends StatefulWidget {
 class ConversationState extends State<Conversation>
     with WidgetsBindingObserver {
   int _visibleMaxIndex = 1;
-  late int minIndex;
+  late int minIndex = 0;
   int scrollCount = 0;
   int lastReadMsgTimestamp;
   bool hasMsgs = true;

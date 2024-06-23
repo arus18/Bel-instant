@@ -39,12 +39,12 @@ class ComposeMessageState extends State<ComposeMessage> {
   final ColorsUtility _randFontColor = ColorsUtility();
   final ColorsUtility _randBgColor = ColorsUtility();
   final User user;
-  late String bgColor;
-  late int _colorCode;
-  late int _bgColorCode;
-  late String fontStyle;
-  late String fontColor;
-  late double fontSize;
+  late String bgColor = '';
+  late int _colorCode = 0;
+  late int _bgColorCode = 0;
+  late String fontStyle = '';
+  late String fontColor = '';
+  late double fontSize = 10;
   late Color selectedColor;
   late bool _autoSize = true;
   late bool _customColor = false;
@@ -52,7 +52,7 @@ class ComposeMessageState extends State<ComposeMessage> {
   late PersistentBottomSheetController controller;
   late final String message;
   late final String conversationID;
-  late String bgImageUrl;
+  String bgImageUrl = '';
   final scaffoldState = GlobalKey<ScaffoldState>();
   ComposeMessageState(this.message, this.conversationID, this.user);
   @override
@@ -76,20 +76,20 @@ class ComposeMessageState extends State<ComposeMessage> {
           .collection('conversations')
           .doc(conversationID)
           .get();
-      bgColor = conversationSnapshot['bgColor'] ?? 'cyan';
-      _bgColorCode = conversationSnapshot['bgColorID'];
-      _colorCode = conversationSnapshot['fontColorID'];
-      fontColor = conversationSnapshot['fontColor'] ?? 'white';
-      fontStyle = conversationSnapshot['fontStyle'] ?? "ABeeZee";
-      final lastSavedFontSize = conversationSnapshot['fontSize'];
-      if (lastSavedFontSize == null) {
+      //bgColor = conversationSnapshot['bgColor'] ?? 'cyan';
+      //_bgColorCode = conversationSnapshot['bgColorID'];
+      //_colorCode = conversationSnapshot['fontColorID'];
+      fontColor = 'white';
+      fontStyle = "ABeeZee";
+      //final lastSavedFontSize = conversationSnapshot['fontSize'];
+      /*if (lastSavedFontSize == null) {
         fontSize = 10.0;
       } else if (lastSavedFontSize == 0) {
         fontSize = 10.0;
       } else {
         fontSize = lastSavedFontSize;
         _autoSize = false;
-      }
+      }*/
       setState(() {
         _initialized = true;
         noInternetConnection = false;
@@ -172,7 +172,7 @@ class ComposeMessageState extends State<ComposeMessage> {
                             child: Stack(
                               alignment: AlignmentDirectional.center,
                               children: <Widget>[
-                                CachedNetworkImage(
+                                /*CachedNetworkImage(
                                   imageBuilder: (context, imageProvider) =>
                                       Container(
                                     margin: EdgeInsets.fromLTRB(5, 0, 5, 0),
@@ -185,7 +185,7 @@ class ComposeMessageState extends State<ComposeMessage> {
                                     ),
                                   ),
                                   imageUrl: bgImageUrl,
-                                ),
+                                ),*/
                                 _autoSize
                                     ? AutoSizeText(message,
                                         style: GoogleFonts.getFont(fontStyle,

@@ -4,11 +4,11 @@ import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
-import 'package:flutter_swiper/flutter_swiper.dart';
-import 'package:interactive_message/contacts.dart';
-import 'package:interactive_message/conversation.dart';
-import 'package:interactive_message/downloadTask.dart';
-import 'package:interactive_message/user.dart';
+import 'package:flutter_swiper_3/flutter_swiper_3.dart';
+import 'contacts.dart';
+import 'conversation.dart';
+import 'downloadTask.dart';
+import 'user.dart';
 import 'package:loading_animations/loading_animations.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:photo_view/photo_view.dart';
@@ -21,7 +21,7 @@ class ProfileImageView extends StatefulWidget {
     this.mediaUrl,
     this.name,
     this.phoneNumber, {
-    Key key,
+    Key? key,
   }) : super(key: key);
   @override
   State<StatefulWidget> createState() {
@@ -76,14 +76,14 @@ class ImageView extends StatefulWidget {
     this.fileName,
     this.mediaUrl,
     this.user, {
-    Key key,
-    this.fileSize,
-    this.conversationID,
-    this.msgID,
-    this.userIDwhoCreatedMsg,
-    this.timestamp,
-    this.twentiethMsgTimestamp,
-    this.forwardSingleImagefile: false,
+    Key? key,
+    required this.fileSize,
+    required this.conversationID,
+    required this.msgID,
+    required this.userIDwhoCreatedMsg,
+    required this.timestamp,
+    required this.twentiethMsgTimestamp,
+    this.forwardSingleImagefile = false,
   }) : super(key: key);
   @override
   State<StatefulWidget> createState() {
@@ -92,20 +92,20 @@ class ImageView extends StatefulWidget {
 }
 
 class ImageViewState extends State<ImageView> {
-  Task _task;
+  late Task _task;
   ReceivePort _port = ReceivePort();
   final String fileName;
   final String mediaUrl;
-  String _path;
-  bool _fileExists;
-  bool _initialized = false;
+  late String _path;
+  late bool _fileExists = false;
+  late bool _initialized = false;
   ImageViewState(this.fileName, this.mediaUrl);
   @override
   void initState() {
     super.initState();
     _init();
     _bindBackgroundIsolate();
-    FlutterDownloader.registerCallback(downloadCallback);
+    FlutterDownloader.registerCallback(downloadCallback as DownloadCallback);
   }
 
   void _bindBackgroundIsolate() {
@@ -137,15 +137,15 @@ class ImageViewState extends State<ImageView> {
 
   static void downloadCallback(
       String id, DownloadTaskStatus status, int progress) {
-    final SendPort send =
+    final SendPort? send =
         IsolateNameServer.lookupPortByName('downloader_send_port');
-    send.send([id, status, progress]);
+    send!.send([id, status, progress]);
   }
 
   _init() async {
     try {
       final dir = await getExternalStorageDirectory();
-      _path = '${dir.path}/Belinstant/' + fileName;
+      _path = '${dir!.path}/Belinstant/' + fileName;
       _fileExists = await File(_path).exists();
       _initialized = true;
       setState(() {});
@@ -154,6 +154,14 @@ class ImageViewState extends State<ImageView> {
 
   @override
   Widget build(BuildContext context) {
+    var imageProvider;
+    if (_fileExists) {
+      // If file exists, use FileImage
+      imageProvider = FileImage(File(_path));
+    } else {
+      // Otherwise, use NetworkImage
+      imageProvider = NetworkImage(mediaUrl);
+    }
     return _initialized
         ? Scaffold(
             bottomNavigationBar:
@@ -182,12 +190,23 @@ class ImageViewState extends State<ImageView> {
                               fileName: fileName,
                               fileUrl: mediaUrl,
                               fileSize: widget.fileSize,
+                              conversationID: '',
+                              displayPictureUrl: '',
+                              groupDisplayPicture: '',
+                              groupName: '',
                             )
                           : Contacts(
                               user: widget.user,
                               newBroadCast: true,
                               forwardMsgList: [forwardsnap],
                               forward: true,
+                              conversationID: '',
+                              displayPictureUrl: '',
+                              fileName: '',
+                              fileSize: 0,
+                              fileUrl: '',
+                              groupDisplayPicture: '',
+                              groupName: '',
                             );
                     }));
                   },
@@ -205,10 +224,7 @@ class ImageViewState extends State<ImageView> {
             ),
             body: Center(
               child: Stack(alignment: Alignment.bottomLeft, children: <Widget>[
-                PhotoView(
-                    imageProvider: _fileExists
-                        ? FileImage(File(_path))
-                        : NetworkImage(mediaUrl)),
+                PhotoView(imageProvider: imageProvider),
                 (_task != null && _task.status == DownloadTaskStatus.running)
                     ? Row(
                         children: <Widget>[
@@ -243,7 +259,7 @@ class ImageViewState extends State<ImageView> {
     try {
       final dir = await getExternalStorageDirectory();
       var knockDir =
-          await Directory('${dir.path}/Belinstant').create(recursive: true);
+          await Directory('${dir!.path}/Belinstant').create(recursive: true);
       final _fileName = fileName.replaceAll('/', '');
       final taskID = await FlutterDownloader.enqueue(
         showNotification: false,
@@ -253,7 +269,7 @@ class ImageViewState extends State<ImageView> {
       );
       setState(() {
         final task = Task();
-        task.taskID = taskID;
+        task.taskID = taskID!;
         _task = task;
       });
     } catch (e) {}
@@ -271,7 +287,7 @@ class MultipleImageView extends StatefulWidget {
   final Map<String, dynamic> fileSizeMap;
   final User user;
   const MultipleImageView(this.user,
-      {Key key, this.mediaList, this.fileSizeMap})
+      {Key? key, required this.mediaList, required this.fileSizeMap})
       : super(key: key);
   @override
   State<StatefulWidget> createState() {
@@ -303,7 +319,7 @@ class MultipleImageViewState extends State<MultipleImageView> {
                 final exists = (_imgPathList[imgUrl] != null);
                 if (exists) {
                   final path = _imgPathList[imgUrl];
-                  return (Image.file(File(path)));
+                  return (Image.file(File(path!)));
                 } else {
                   return GestureDetector(
                       onTap: () {
@@ -315,6 +331,11 @@ class MultipleImageViewState extends State<MultipleImageView> {
                             widget.user,
                             fileSize: fileSize,
                             forwardSingleImagefile: true,
+                            conversationID: '',
+                            msgID: '',
+                            timestamp: 0,
+                            twentiethMsgTimestamp: 0,
+                            userIDwhoCreatedMsg: '',
                           );
                         }));
                       },
@@ -344,7 +365,7 @@ class MultipleImageViewState extends State<MultipleImageView> {
       for (final key in widget.mediaList.keys) {
         final fileName = widget.mediaList[key];
         final dir = await getExternalStorageDirectory();
-        final path = '${dir.path}/Belinstant/' + fileName;
+        final path = '${dir!.path}/Belinstant/' + fileName;
         final fileExists = await File(path).exists();
         if (fileExists) {
           _imgPathList[key] = path;

@@ -2,61 +2,61 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_admob/firebase_admob.dart';
-
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:interactive_message/contacts.dart';
-import 'package:interactive_message/conversation.dart';
-import 'package:interactive_message/photoview.dart';
-import 'package:interactive_message/profileView.dart';
-import 'package:interactive_message/user.dart';
-import 'package:interactive_message/updateFunctions.dart';
+import 'contacts.dart';
+import 'conversation.dart';
+import 'photoview.dart';
+import 'profileView.dart';
+import 'user.dart';
+import 'updateFunctions.dart';
 import 'package:loading_animations/loading_animations.dart';
 import 'package:dart_date/dart_date.dart';
-import 'package:interactive_message/sendMsgs.dart';
+import 'sendMsgs.dart';
 
-class Home extends StatefulWidget {
+class HomeState extends StatefulWidget {
   final User user;
-  const Home({Key key, this.user}) : super(key: key);
+
+  HomeState(this.user);
+
   @override
-  State<StatefulWidget> createState() {
-    return HomeState(user);
-  }
+  _HomeState createState() => _HomeState();
 }
 
-class HomeState extends State<Home> {
-  final User user;
-  HomeState(this.user);
-  BannerAd myBanner;
+class _HomeState extends State<HomeState> {
+  //late AdmobBanner myBanner;
+
   @override
   void initState() {
     super.initState();
-    FirebaseAdMob.instance
-        .initialize(appId: "ca-app-pub-7282852941650188~9585840662");
-    myBanner = buildBannerAd()..load();
+    Firebase.initializeApp();
+    //myBanner = buildBannerAd();
   }
 
-  BannerAd buildBannerAd() {
-    return BannerAd(
-        adUnitId: 'ca-app-pub-7282852941650188/8486998527',
-        size: AdSize.smartBanner,
-        listener: (MobileAdEvent event) {
-          if (event == MobileAdEvent.loaded) {
-            myBanner..show(anchorType: AnchorType.bottom);
-          }
-        });
-  }
+  /*AdmobBanner buildBannerAd() {
+    return AdmobBanner(
+      adUnitId:
+          'ca-app-pub-7282852941650188/8486998527', // Replace with your actual ad unit ID
+      // ignore: sdk_version_constructor_tearoffs
+      adSize: AdmobBannerSize.BANNER,
+      listener: (AdmobAdEvent event, Map<String, dynamic>? args) {
+        if (event == AdmobAdEvent.loaded) {
+          print('AdMob banner loaded.');
+        }
+      },
+    );
+  }*/
 
   @override
   Widget build(BuildContext context) {
-    final appBar = (AppBar(
+    final appBar = AppBar(
       actions: <Widget>[
         IconButton(
           onPressed: () {
             Navigator.push(context,
                 MaterialPageRoute(builder: (BuildContext context) {
               return ProfileView(
-                user: user,
+                user: widget.user,
               );
             }));
           },
@@ -66,203 +66,187 @@ class HomeState extends State<Home> {
       elevation: 8,
       title: Text("Chats", style: TextStyle(color: Colors.black)),
       shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(bottomRight: Radius.circular(30))),
+        borderRadius: BorderRadius.only(bottomRight: Radius.circular(30)),
+      ),
       backgroundColor: Colors.yellow,
-    ));
+    );
+
     return Scaffold(
-        bottomNavigationBar: Container(
-          height: 50,
-          child: Center(child: Text('Ad')),
-        ),
-        floatingActionButton: FloatingActionButton(
-          child: Icon(Icons.message),
-          backgroundColor: Colors.yellow,
-          onPressed: () {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (BuildContext context) {
-              return Contacts(
-                user: user,
+      bottomNavigationBar: Container(
+        height: 50,
+        // Display AdMob banner here
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.message),
+        backgroundColor: Colors.yellow,
+        onPressed: () {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (BuildContext context) {
+            return Contacts(
+              user: widget.user,
+              conversationID: '',
+              displayPictureUrl: '',
+              fileName: '',
+              fileSize: 0,
+              fileUrl: '',
+              forward: false,
+              forwardMsgList: [],
+              groupDisplayPicture: '',
+              groupName: '',
+            );
+          }));
+        },
+      ),
+      appBar: appBar,
+      body: Container(
+        margin: EdgeInsets.only(top: 5),
+        child: StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('users')
+              .doc(widget.user.regionCode)
+              .collection('users')
+              .doc('${widget.user.userID}')
+              .collection('conversations')
+              .orderBy('timeDelayTimestamp', descending: true)
+              .snapshots(),
+          builder:
+              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            if (snapshot.hasError) {
+              return Center(
+                child: Text(snapshot.error.toString()),
               );
-            }));
+            }
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+            if (snapshot.hasData) {
+              return ListView.builder(
+                itemCount: snapshot.data!.docs.length,
+                itemBuilder: (context, index) {
+                  final conversationSnapshot = snapshot.data!.docs[index];
+                  final String displayPictureUrl =
+                      conversationSnapshot['displayPictureUrl'];
+                  final conversationName =
+                      conversationSnapshot['conversationWith'];
+                  final phoneNumber = conversationSnapshot['phoneNumber'] ?? '';
+                  final isGruopInvite =
+                      conversationSnapshot['groupInvite'] ?? false;
+                  final isGroupChat =
+                      conversationSnapshot['groupChat'] ?? false;
+                  final isBlocked = conversationSnapshot['blocked'] ?? false;
+                  final userIDconversationWith =
+                      conversationSnapshot['userIDconversationWith'];
+
+                  if (isGruopInvite) {
+                    return GroupInvite(
+                      conversationSnapshot: conversationSnapshot,
+                      user: widget.user,
+                    );
+                  }
+
+                  return FutureBuilder<bool>(
+                    future: conversationHasData(
+                        conversationSnapshot.id, widget.user),
+                    builder:
+                        (BuildContext context, AsyncSnapshot<bool> hasData) {
+                      if (hasData.connectionState == ConnectionState.done) {
+                        return Container(
+                          height: 75,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.yellow),
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.5),
+                                spreadRadius: 5,
+                                blurRadius: 7,
+                                offset: Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          margin: EdgeInsets.all(5),
+                          child: ListTile(
+                            onTap: () {
+                              setlastReadMsgTimestamp(
+                                  conversationSnapshot.id, widget.user);
+                              setUserLive(conversationSnapshot.id, widget.user);
+                              setUnreadCountToZero(
+                                  conversationSnapshot.id, widget.user);
+                              setMsgsRead(
+                                  conversationSnapshot['lastReadMsgTimestamp'],
+                                  conversationSnapshot.id,
+                                  widget.user);
+
+                              Navigator.push(context, MaterialPageRoute(
+                                  builder: (BuildContext context) {
+                                return Conversation(
+                                  conversationSnapshot['lastReadMsgTimestamp'],
+                                  user: widget.user,
+                                  conversationID: conversationSnapshot.id,
+                                  isGroupChat: isGroupChat,
+                                  isBlocked: isBlocked,
+                                  phoneNumber: phoneNumber,
+                                  displayPictureUrl: displayPictureUrl,
+                                  conversationWith: conversationName,
+                                  userIDconversationWith:
+                                      userIDconversationWith,
+                                );
+                              }));
+                            },
+                            leading: GestureDetector(
+                              onTap: () {
+                                Navigator.push(context, MaterialPageRoute(
+                                    builder: (BuildContext context) {
+                                  return ProfileImageView(displayPictureUrl,
+                                      conversationName, phoneNumber);
+                                }));
+                              },
+                              child: displayPictureUrl.isEmpty
+                                  ? CircleAvatar()
+                                  : CircleAvatar(
+                                      backgroundImage:
+                                          CachedNetworkImageProvider(
+                                              displayPictureUrl),
+                                    ),
+                            ),
+                            title: Text(
+                              conversationName,
+                              maxLines: 1,
+                              style: TextStyle(
+                                fontSize: 20,
+                              ),
+                            ),
+                            subtitle: Subtitle(
+                              userID: widget.user.userID,
+                              conversationID: conversationSnapshot.id,
+                              isGroupChat: isGroupChat,
+                            ),
+                            trailing: Trailing(
+                              conversationID: conversationSnapshot.id,
+                              userID: widget.user.userID,
+                              regionCode: widget.user.regionCode,
+                            ),
+                          ),
+                        );
+                      }
+                      return Container(); // Placeholder widget until Future completes
+                    },
+                  );
+                },
+              );
+            }
+            return Container(); // Placeholder widget until StreamBuilder has data
           },
         ),
-        appBar: appBar,
-        body: Container(
-          margin: EdgeInsets.only(top: 5),
-          child: (StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance
-                .collection('users')
-                .doc(user.regionCode)
-                .collection('users')
-                .doc('${user.userID}')
-                .collection('conversations')
-                .orderBy('timeDelayTimestamp', descending: true)
-                .snapshots(),
-            builder:
-                (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-              if (snapshot.hasError) {
-                return Center(
-                  child: Text(snapshot.error),
-                );
-              }
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(
-                  child: Text('Loading'),
-                );
-              }
-              if (snapshot.hasData) {
-                return ListView.builder(
-                  itemCount: snapshot.data.docs.length,
-                  itemBuilder: (context, index) {
-                    final conversationSnapshot = snapshot.data.docs[index];
-                    final String displayPictureUrl =
-                        conversationSnapshot.data()['displayPictureUrl'];
-                    final conversationName =
-                        conversationSnapshot.data()['conversationWith'];
-                    final phoneNumber =
-                        conversationSnapshot.data()['phoneNumber'] ?? '';
-                    final isGruopInvite =
-                        conversationSnapshot.data()['groupInvite'] ?? false;
-                    final isGroupChat =
-                        conversationSnapshot.data()['groupChat'] ?? false;
-                    final isBlocked =
-                        conversationSnapshot.data()['blocked'] ?? false;
-                    final userIDconversationWith =
-                        conversationSnapshot.data()['userIDconversationWith'];
-                    if (isGruopInvite) {
-                      return GroupInvite(
-                        conversationSnapshot: conversationSnapshot,
-                        user: user,
-                      );
-                    }
-                    return (FutureBuilder(
-                      future:
-                          conversationHasData(conversationSnapshot.id, user),
-                      builder:
-                          (BuildContext context, AsyncSnapshot<bool> hasData) {
-                        if (hasData.connectionState == ConnectionState.done) {
-                          if (hasData.data) {
-                            return Container(
-                                height: 75,
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.yellow),
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.only(
-                                      topLeft: Radius.circular(20),
-                                      topRight: Radius.circular(10),
-                                      bottomLeft: Radius.circular(10),
-                                      bottomRight: Radius.circular(10)),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.grey.withOpacity(0.5),
-                                      spreadRadius: 5,
-                                      blurRadius: 7,
-                                      offset: Offset(
-                                          0, 3), // changes position of shadow
-                                    ),
-                                  ],
-                                ),
-                                margin: EdgeInsets.all(5),
-                                child: ListTile(
-                                    onTap: () {
-                                      setlastReadMsgTimestamp(
-                                        conversationSnapshot.id,
-                                        user,
-                                      );
-                                      setUserLive(
-                                          conversationSnapshot.id, user);
-                                      setUnreadCountToZero(
-                                          conversationSnapshot.id, user);
-
-                                      setMsgsRead(
-                                        conversationSnapshot
-                                            .data()['lastReadMsgTimestamp'],
-                                        conversationSnapshot.id,
-                                        user,
-                                      );
-
-                                      Navigator.push(context, MaterialPageRoute(
-                                          builder: (BuildContext context) {
-                                        return Conversation(
-                                          conversationSnapshot
-                                              .data()['lastReadMsgTimestamp'],
-                                          user: user,
-                                          conversationID:
-                                              conversationSnapshot.id,
-                                          isGroupChat: isGroupChat,
-                                          isBlocked: isBlocked,
-                                          phoneNumber: phoneNumber,
-                                          displayPictureUrl: displayPictureUrl,
-                                          conversationWith: conversationName,
-                                          userIDconversationWith:
-                                              userIDconversationWith,
-                                        );
-                                      }));
-                                    },
-                                    leading: GestureDetector(
-                                        onTap: () {
-                                          Navigator.push(context,
-                                              MaterialPageRoute(builder:
-                                                  (BuildContext context) {
-                                            return ProfileImageView(
-                                                displayPictureUrl,
-                                                conversationName,
-                                                phoneNumber);
-                                          }));
-                                        },
-                                        child: displayPictureUrl.isEmpty
-                                            ? CircleAvatar()
-                                            : CircleAvatar(
-                                                backgroundImage:
-                                                    CachedNetworkImageProvider(
-                                                        displayPictureUrl),
-                                              )),
-                                    title: Text(conversationName,
-                                        maxLines: 1,
-                                        style: TextStyle(
-                                          fontSize: 20,
-                                        )),
-                                    subtitle: Subtitle(
-                                      userID: user.userID,
-                                      conversationID: conversationSnapshot.id,
-                                      isGroupChat: isGroupChat,
-                                    ),
-                                    trailing: Trailing(
-                                      conversationID: conversationSnapshot.id,
-                                      userID: user.userID,
-                                      regionCode: user.regionCode,
-                                    )));
-                          }
-                        }
-                        return Container();
-                      },
-                    ));
-                  },
-                );
-              }
-              return Container();
-            },
-          )),
-          decoration: BoxDecoration(
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black,
-                spreadRadius: 5,
-                blurRadius: 7,
-                offset: Offset(0, 3),
-              )
-            ],
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20),
-            ),
-            color: Colors.yellow[100],
-          ),
-        ));
+      ),
+    );
   }
 
   @override
   void dispose() {
-    myBanner.dispose();
     super.dispose();
   }
 }
@@ -271,7 +255,11 @@ class Subtitle extends StatelessWidget {
   final String userID;
   final String conversationID;
   final bool isGroupChat;
-  const Subtitle({Key key, this.userID, this.conversationID, this.isGroupChat})
+  const Subtitle(
+      {Key? key,
+      required this.userID,
+      required this.conversationID,
+      required this.isGroupChat})
       : super(key: key);
   @override
   Widget build(BuildContext context) {
@@ -289,21 +277,20 @@ class Subtitle extends StatelessWidget {
           return Container();
         }
         if (snapshot.hasData) {
-          final participants = snapshot.data.docs;
+          final participants = snapshot.data!.docs;
           String userStatus = '';
-          final participant = participants.firstWhere((snap) {
-            return (snap.id != userID &&
-                (snap['status'] == 'typing' ||
-                    snap['status'] == 'recording audio'));
-          }, orElse: () {
-            return null;
-          });
+          final participant = participants.firstWhere(
+            (snap) {
+              return (snap.id != userID &&
+                  (snap['status'] == 'typing' ||
+                      snap['status'] == 'recording audio'));
+            },
+          );
           if (participant != null) {
             if (isGroupChat) {
-              userStatus =
-                  '${participant['name']} is ' + participant.data()['status'];
+              userStatus = '${participant['name']} is ' + participant['status'];
             } else {
-              userStatus = participant.data()['status'];
+              userStatus = participant['status'];
             }
 
             return FutureBuilder(
@@ -333,14 +320,14 @@ class Subtitle extends StatelessWidget {
                 builder: (BuildContext context,
                     AsyncSnapshot<QuerySnapshot> snapshot) {
                   if (snapshot.hasData) {
-                    final msgSnapShot = snapshot.data.docs.last;
+                    final msgSnapShot = snapshot.data!.docs.last;
                     String lastMsg = '';
-                    final msgType = msgSnapShot.data()['msgType'];
+                    final msgType = msgSnapShot['msgType'];
                     if (msgType == 'updateInfo') {
-                      lastMsg = msgSnapShot.data()['info'];
+                      lastMsg = msgSnapShot['info'];
                     }
                     if (msgType == 'text' || msgType == 'reply') {
-                      lastMsg = msgSnapShot.data()['msg'];
+                      lastMsg = msgSnapShot['msg'];
                     }
                     if (msgType == 'audio') {
                       lastMsg = 'Audio';
@@ -379,7 +366,11 @@ class Trailing extends StatelessWidget {
   final String conversationID;
   final String userID;
   final String regionCode;
-  const Trailing({Key key, this.conversationID, this.userID, this.regionCode})
+  const Trailing(
+      {Key? key,
+      required this.conversationID,
+      required this.userID,
+      required this.regionCode})
       : super(key: key);
   @override
   Widget build(BuildContext context) {
@@ -400,15 +391,15 @@ class Trailing extends StatelessWidget {
                 AsyncSnapshot<DocumentSnapshot> snapshot) {
               if (snapshot.hasError) {
                 return Center(
-                  child: Text(snapshot.error),
+                  child: Text(snapshot.error.toString()),
                 );
               }
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return Container();
               }
               if (snapshot.hasData) {
-                final _timestamp = snapshot.data.data()['timestamp'] ?? 0;
-                final _unreadCount = snapshot.data.data()['unreadCount'] ?? 0;
+                final _timestamp = snapshot.data!['timestamp'] ?? 0;
+                final _unreadCount = snapshot.data!['unreadCount'] ?? 0;
                 return Column(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: <Widget>[
@@ -463,7 +454,8 @@ class Trailing extends StatelessWidget {
 
 class GroupInvite extends StatefulWidget {
   final DocumentSnapshot conversationSnapshot;
-  const GroupInvite({Key key, this.conversationSnapshot, this.user})
+  const GroupInvite(
+      {Key? key, required this.conversationSnapshot, required this.user})
       : super(key: key);
   final User user;
   @override
@@ -481,14 +473,13 @@ class GroupInviteState extends State<GroupInvite> {
   @override
   Widget build(BuildContext context) {
     final String groupDisplayPicture =
-        conversationSnapshot.data()['groupDisplayPicture'] ?? '';
+        conversationSnapshot['groupDisplayPicture'] ?? '';
     final String invitorDisplayPicture =
-        conversationSnapshot.data()['invitorDisplayPicture'] ?? '';
-    final groupName = conversationSnapshot.data()['groupName'];
-    final invitorName = conversationSnapshot.data()['invitorName'];
-    final groupConversationID =
-        conversationSnapshot.data()['groupConversationID'];
-    final invitorID = conversationSnapshot.data()['invitorID'];
+        conversationSnapshot['invitorDisplayPicture'] ?? '';
+    final groupName = conversationSnapshot['groupName'];
+    final invitorName = conversationSnapshot['invitorName'];
+    final groupConversationID = conversationSnapshot['groupConversationID'];
+    final invitorID = conversationSnapshot['invitorID'];
     return Container(
         decoration: BoxDecoration(
           border: Border.all(color: Colors.yellow),
@@ -526,9 +517,12 @@ class GroupInviteState extends State<GroupInvite> {
                     ? LoadingBouncingLine.circle(
                         size: 20,
                       )
-                    : FlatButton(
-                        color: Colors.yellow,
-                        padding: EdgeInsets.all(2),
+                    : TextButton(
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          backgroundColor:
+                              Colors.blue, // Button background color
+                        ),
                         child: Text('Join'),
                         onPressed: () {
                           FirebaseFirestore.instance
@@ -547,9 +541,12 @@ class GroupInviteState extends State<GroupInvite> {
                     ? LoadingBouncingLine.circle(
                         size: 20,
                       )
-                    : FlatButton(
-                        color: Colors.yellow,
-                        padding: EdgeInsets.all(2),
+                    : TextButton(
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          backgroundColor:
+                              Colors.blue, // Button background color
+                        ),
                         child: Text('Ignore'),
                         onPressed: () {
                           FirebaseFirestore.instance
@@ -662,8 +659,8 @@ class GroupInviteState extends State<GroupInvite> {
         .collection('conversations')
         .doc(conversationID)
         .set({
-      'conversationWith': conversationSnapshot.data()['conversationWith'],
-      'displayPictureUrl': conversationSnapshot.data()['displayPictureUrl']
+      'conversationWith': conversationSnapshot['conversationWith'],
+      'displayPictureUrl': conversationSnapshot['displayPictureUrl']
     }, SetOptions(merge: true));
   }
 }

@@ -5,17 +5,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:interactive_message/conversation.dart';
-import 'package:interactive_message/read.dart';
-import 'package:interactive_message/sendMsgs.dart';
-import 'package:interactive_message/user.dart';
+import 'package:bel_instant/conversation.dart';
+import 'package:bel_instant/read.dart';
+import 'package:bel_instant/sendMsgs.dart';
+import 'package:bel_instant/user.dart';
 import 'package:loading_animations/loading_animations.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class AudioPlayerForPreview extends StatefulWidget {
   final int duration;
   final String url;
-  const AudioPlayerForPreview(this.duration, {Key key, this.url})
+  const AudioPlayerForPreview(this.duration, {Key? key, required this.url})
       : super(key: key);
   @override
   State<StatefulWidget> createState() {
@@ -33,8 +33,8 @@ class AudioPlayerForPreviewState extends State<AudioPlayerForPreview> {
   @override
   void initState() {
     super.initState();
-    _audioPlayer.onPlayerStateChanged.listen((AudioPlayerState state) {
-      if (state == AudioPlayerState.COMPLETED) {
+    _audioPlayer.onPlayerStateChanged.listen((PlayerState state) {
+      if (state == PlayerState.completed) {
         setState(() {
           _playing = false;
           _progress = 0.0;
@@ -42,14 +42,14 @@ class AudioPlayerForPreviewState extends State<AudioPlayerForPreview> {
       }
     });
 
-    _audioPlayer.onAudioPositionChanged.listen(
+    _audioPlayer.onPlayerStateChanged.listen(
       (Duration d) {
         if (mounted) {
           setState(() {
             _progress = (d.inMilliseconds / duration).toDouble();
           });
         }
-      },
+      } as void Function(PlayerState event)?,
     );
   }
 
@@ -91,7 +91,7 @@ class AudioPlayerForPreviewState extends State<AudioPlayerForPreview> {
   _play() async {
     if (!_playing) {
       try {
-        await _audioPlayer.play(url, isLocal: true);
+        await _audioPlayer.play(url as Source);
       } catch (e) {}
 
       setState(() {
@@ -108,7 +108,6 @@ class AudioPlayerForPreviewState extends State<AudioPlayerForPreview> {
 }
 
 class AudioPlayerForConversation extends StatefulWidget {
-  
   final int timeMsgCreated;
   final String userNameCreatedMsg;
   final bool isGroupChat;
@@ -126,7 +125,6 @@ class AudioPlayerForConversation extends StatefulWidget {
   final int twentiethMsgTimestamp;
   final String userIDwhoCreatedRepliedMsg;
   const AudioPlayerForConversation(
-    
     this.user,
     this.conversationState,
     this.conversationID,
@@ -137,13 +135,13 @@ class AudioPlayerForConversation extends StatefulWidget {
     this.isGroupChat,
     this.userNameCreatedMsg,
     this.duration, {
-    Key key,
-    this.url,
-    this.fileSize,
-    this.scrollController,
-    this.reply: false,
-    this.twentiethMsgTimestamp,
-    this.userIDwhoCreatedRepliedMsg,
+    Key? key,
+    required this.url,
+    required this.fileSize,
+    required this.scrollController,
+    this.reply = false,
+    required this.twentiethMsgTimestamp,
+    required this.userIDwhoCreatedRepliedMsg,
   }) : super(key: key);
   @override
   State<StatefulWidget> createState() {
@@ -162,12 +160,12 @@ class AudioPlayerForConversationState
   final String conversationID;
   final String msgID;
   final int duration;
-  File _audioFile;
+  late File _audioFile;
   final String url;
   AudioPlayer _audioPlayer = AudioPlayer();
   double _progress = 0.0;
   bool _playing = false;
-  ForwardSnap _forwardSnap;
+  late ForwardSnap _forwardSnap;
   bool _isSelected = false;
   final _focusNode = FocusNode();
   AudioPlayerForConversationState(
@@ -190,8 +188,8 @@ class AudioPlayerForConversationState
         widget.timeMsgCreated,
         widget.twentiethMsgTimestamp);
     try {
-      _audioPlayer.onPlayerStateChanged.listen((AudioPlayerState state) {
-        if (state == AudioPlayerState.COMPLETED) {
+      _audioPlayer.onPlayerStateChanged.listen((PlayerState state) {
+        if (state == PlayerState.completed) {
           setState(() {
             _playing = false;
             _progress = 0.0;
@@ -200,14 +198,14 @@ class AudioPlayerForConversationState
       });
     } catch (e) {}
     try {
-      _audioPlayer.onAudioPositionChanged.listen(
+      _audioPlayer.onPlayerStateChanged.listen(
         (Duration d) {
           if (mounted) {
             setState(() {
               _progress = (d.inMilliseconds / duration).toDouble();
             });
           }
-        },
+        } as void Function(PlayerState event)?,
       );
     } catch (e) {}
     _initialize();
@@ -300,7 +298,10 @@ class AudioPlayerForConversationState
                                           conversationState.scrollCount;
                                       widget.scrollController
                                           .jumpTo(index: scrollCount);
-                                      sendText(map, user,);
+                                      sendText(
+                                        map,
+                                        user,
+                                      );
                                     },
                                     icon: Icon(Icons.send),
                                   ),
@@ -364,6 +365,7 @@ class AudioPlayerForConversationState
                                                 : Colors.yellow,
                                             shape: BoxShape.circle),
                                         child: Center(
+                                          // ignore: unnecessary_null_comparison
                                           child: (_audioFile == null)
                                               ? LoadingDoubleFlipping.circle(
                                                   backgroundColor:
@@ -411,6 +413,7 @@ class AudioPlayerForConversationState
                                                 : Colors.yellow,
                                             shape: BoxShape.circle),
                                         child: Center(
+                                          // ignore: unnecessary_null_comparison
                                           child: (_audioFile == null)
                                               ? LoadingDoubleFlipping.circle(
                                                   backgroundColor:
@@ -455,7 +458,7 @@ class AudioPlayerForConversationState
   _play() async {
     if (!_playing) {
       try {
-        await _audioPlayer.play(_audioFile.path, isLocal: true);
+        await _audioPlayer.play(_audioFile.path as Source);
       } catch (e) {}
 
       setState(() {

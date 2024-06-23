@@ -2,9 +2,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:interactive_message/conversation.dart';
-import 'package:interactive_message/sendMsgs.dart';
-import 'package:interactive_message/user.dart';
+import 'conversation.dart';
+import 'sendMsgs.dart';
+import 'user.dart';
 import 'package:loading_animations/loading_animations.dart';
 
 class GroupChats extends StatefulWidget {
@@ -15,13 +15,13 @@ class GroupChats extends StatefulWidget {
   final String fileUrl;
   final int fileSize;
   const GroupChats(
-      {Key key,
-      this.user,
-      this.forwardMsgList,
-      this.forwardSingleImage,
-      this.fileName,
-      this.fileUrl,
-      this.fileSize})
+      {Key? key,
+      required this.user,
+      required this.forwardMsgList,
+      required this.forwardSingleImage,
+      required this.fileName,
+      required this.fileUrl,
+      required this.fileSize})
       : super(key: key);
   @override
   State<StatefulWidget> createState() {
@@ -31,7 +31,7 @@ class GroupChats extends StatefulWidget {
 
 class GroupChatsState extends State<GroupChats> {
   bool initialized = false;
-  QuerySnapshot conversations;
+  late QuerySnapshot conversations;
   Map<String, bool> selectionList = Map<String, bool>();
   @override
   void initState() {
@@ -75,7 +75,7 @@ class GroupChatsState extends State<GroupChats> {
                           setState(() {
                             conversations.docs.forEach((conversation) {
                               final isGroupChat =
-                                  conversation.data()['groupChat'] ?? false;
+                                  conversation['groupChat'] ?? false;
                               if (isGroupChat) {
                                 selectionList[conversation.id] = true;
                               }
@@ -89,7 +89,7 @@ class GroupChatsState extends State<GroupChats> {
                         backgroundColor: Colors.red,
                         onPressed: () async {
                           Navigator.pop(context);
-                          final conversationIDlist = List<String>();
+                          final conversationIDlist = [];
                           selectionList.forEach((conversationID, isSelected) {
                             if (isSelected) {
                               conversationIDlist.add(conversationID);
@@ -177,11 +177,11 @@ class GroupChatsState extends State<GroupChats> {
               itemBuilder: (BuildContext context, index) {
                 final conversation = conversations.docs[index];
                 final isSelected = selectionList[conversation.id] ?? false;
-                final isGroupChat = conversation.data()['groupChat'] ?? false;
+                final isGroupChat = conversation['groupChat'] ?? false;
                 if (isGroupChat) {
                   final String displayPictureUrl =
-                      conversation.data()['displayPictureUrl'];
-                  final String name = conversation.data()['conversationWith'];
+                      conversation['displayPictureUrl'];
+                  final String name = conversation['conversationWith'];
                   return ListTile(
                     onTap: () {
                       setState(() {

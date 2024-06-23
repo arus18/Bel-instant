@@ -1,19 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:contacts_service/contacts_service.dart';
-import 'package:interactive_message/user.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
+import 'user.dart';
 import 'countrycodes.dart';
 
 Future<void> refreshContacts(User user) async {
-  final Iterable<Contact> contacts = await ContactsService.getContacts();
+  final Iterable<Contact> contacts = await FlutterContacts.getContacts();
   final users = FirebaseFirestore.instance
       .collection('users')
       .doc(user.regionCode)
       .collection('users');
   final dbContacts = await users.doc(user.userID).collection('contacts').get();
   await Future.forEach(contacts, (Contact contact) async {
-    final Iterable<Item> numbers = contact.phones;
-    await Future.forEach(numbers, (Item number) {
-      updateContacts(user, number.value.replaceAll(RegExp(r"\s+"), ""),
+    final List<Phone>? numbers = contact.phones;
+    await Future.forEach(numbers!, (Phone number) {
+      updateContacts(user, number.number.replaceAll(RegExp(r"\s+"), ""),
           dbContacts.docs, users);
     });
   });
@@ -24,15 +24,16 @@ Future<void> updateContacts(User user, String phoneNumber, List contacts,
   final numberLength = regionCodeNationalNumberLength[user.regionCode];
   final countryCode = regionCodeCountryCode[user.regionCode];
   if (phoneNumber.startsWith('+')) {
-    final regionCodes = await FirebaseFirestore.instance.collection('users').get();
-    for(int i = 0;i<regionCodes.docs.length;i++){
+    final regionCodes =
+        await FirebaseFirestore.instance.collection('users').get();
+    for (int i = 0; i < regionCodes.docs.length; i++) {
       final id = regionCodes.docs.elementAt(i).id;
       final _users = FirebaseFirestore.instance
           .collection('users')
           .doc(id)
           .collection('users');
       bool isContactUpdated = contacts.any((contact) {
-        return contact.data()['phoneNumber'] == phoneNumber;
+        return contact['phoneNumber'] == phoneNumber;
       });
       if (!isContactUpdated) {
         final userSnapshot = await _getUser(
@@ -43,10 +44,10 @@ Future<void> updateContacts(User user, String phoneNumber, List contacts,
           if (userSnapshot.id != user.userID) {
             final contacts = users.doc(user.userID).collection('contacts');
             contacts.doc(userSnapshot.id).set({
-              'displayPictureUrl': userSnapshot.data()['displayPictureUrl'],
-              'contactName': userSnapshot.data()['name'],
-              'phoneNumber': userSnapshot.data()['phoneNumber'],
-              'regionCode': userSnapshot.data()['regionCode']
+              'displayPictureUrl': userSnapshot['displayPictureUrl'],
+              'contactName': userSnapshot['name'],
+              'phoneNumber': userSnapshot['phoneNumber'],
+              'regionCode': userSnapshot['regionCode']
             }, SetOptions(merge: true));
             break;
           }
@@ -54,13 +55,13 @@ Future<void> updateContacts(User user, String phoneNumber, List contacts,
       }
     }
   }
-  if (phoneNumber.length >= numberLength) {
+  if (phoneNumber.length >= numberLength!) {
     //if phonenumber not equal to user.phonenumber
     final startIndex = phoneNumber.length - numberLength;
     final nationalNumber = phoneNumber.substring(startIndex);
-    final internationalNumber = countryCode + nationalNumber;
+    final internationalNumber = countryCode! + nationalNumber;
     bool isContactUpdated = contacts.any((contact) {
-      return contact.data()['phoneNumber'] == internationalNumber;
+      return contact['phoneNumber'] == internationalNumber;
     });
     if (!isContactUpdated) {
       final userSnapshot = await _getUser(
@@ -71,10 +72,10 @@ Future<void> updateContacts(User user, String phoneNumber, List contacts,
         if (userSnapshot.id != user.userID) {
           final contacts = users.doc(user.userID).collection('contacts');
           contacts.doc(userSnapshot.id).set({
-            'displayPictureUrl': userSnapshot.data()['displayPictureUrl'],
-            'contactName': userSnapshot.data()['name'],
-            'phoneNumber': userSnapshot.data()['phoneNumber'],
-            'regionCode': userSnapshot.data()['regionCode']
+            'displayPictureUrl': userSnapshot['displayPictureUrl'],
+            'contactName': userSnapshot['name'],
+            'phoneNumber': userSnapshot['phoneNumber'],
+            'regionCode': userSnapshot['regionCode']
           }, SetOptions(merge: true));
         }
       }
@@ -82,7 +83,7 @@ Future<void> updateContacts(User user, String phoneNumber, List contacts,
   }
 }
 
-Future<DocumentSnapshot> _getUser(
+Future<QueryDocumentSnapshot?> _getUser(
   String number,
   CollectionReference users,
 ) async {

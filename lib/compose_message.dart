@@ -7,19 +7,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:interactive_message/colors.dart';
-import 'package:interactive_message/fonts.dart';
-import 'package:interactive_message/selectColor.dart';
-import 'package:interactive_message/selectFont.dart';
-import 'package:interactive_message/user.dart';
-import 'package:interactive_message/sendMsgs.dart';
+import 'colors.dart';
+import 'fonts.dart';
+import 'selectColor.dart';
+import 'selectFont.dart';
+import 'user.dart';
+import 'sendMsgs.dart';
 import 'package:loading_animations/loading_animations.dart';
 
 class ComposeMessage extends StatefulWidget {
   final User user;
   final String message;
   final String conversationID;
-  const ComposeMessage({Key key, this.message, this.conversationID, this.user})
+  const ComposeMessage(
+      {required Key key,
+      required this.message,
+      required this.conversationID,
+      required this.user})
       : super(key: key);
   @override
   State<StatefulWidget> createState() {
@@ -28,27 +32,27 @@ class ComposeMessage extends StatefulWidget {
 }
 
 class ComposeMessageState extends State<ComposeMessage> {
-  bool noInternetConnection;
+  late bool noInternetConnection;
   bool _initialized = false;
   bool _isBgColor = true;
   bool _showShades = false;
   final ColorsUtility _randFontColor = ColorsUtility();
   final ColorsUtility _randBgColor = ColorsUtility();
   final User user;
-  String bgColor;
-  int _colorCode;
-  int _bgColorCode;
-  String fontStyle;
-  String fontColor;
-  double fontSize;
-  Color selectedColor;
-  bool _autoSize = true;
-  bool _customColor = false;
-  bool _randomFont = true;
-  PersistentBottomSheetController controller;
-  final String message;
-  final String conversationID;
-  String bgImageUrl;
+  late String bgColor;
+  late int _colorCode;
+  late int _bgColorCode;
+  late String fontStyle;
+  late String fontColor;
+  late double fontSize;
+  late Color selectedColor;
+  late bool _autoSize = true;
+  late bool _customColor = false;
+  late bool _randomFont = true;
+  late PersistentBottomSheetController controller;
+  late final String message;
+  late final String conversationID;
+  late String bgImageUrl;
   final scaffoldState = GlobalKey<ScaffoldState>();
   ComposeMessageState(this.message, this.conversationID, this.user);
   @override
@@ -72,12 +76,12 @@ class ComposeMessageState extends State<ComposeMessage> {
           .collection('conversations')
           .doc(conversationID)
           .get();
-      bgColor = conversationSnapshot.data()['bgColor'] ?? 'cyan';
-      _bgColorCode = conversationSnapshot.data()['bgColorID'];
-      _colorCode = conversationSnapshot.data()['fontColorID'];
-      fontColor = conversationSnapshot.data()['fontColor'] ?? 'white';
-      fontStyle = conversationSnapshot.data()['fontStyle'] ?? "ABeeZee";
-      final lastSavedFontSize = conversationSnapshot.data()['fontSize'];
+      bgColor = conversationSnapshot['bgColor'] ?? 'cyan';
+      _bgColorCode = conversationSnapshot['bgColorID'];
+      _colorCode = conversationSnapshot['fontColorID'];
+      fontColor = conversationSnapshot['fontColor'] ?? 'white';
+      fontStyle = conversationSnapshot['fontStyle'] ?? "ABeeZee";
+      final lastSavedFontSize = conversationSnapshot['fontSize'];
       if (lastSavedFontSize == null) {
         fontSize = 10.0;
       } else if (lastSavedFontSize == 0) {
@@ -126,6 +130,7 @@ class ComposeMessageState extends State<ComposeMessage> {
               : Column(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
+                    // ignore: unnecessary_null_comparison
                     (bgImageUrl == null)
                         ? ConstrainedBox(
                             constraints: BoxConstraints(
@@ -135,6 +140,7 @@ class ComposeMessageState extends State<ComposeMessage> {
                               child: _autoSize
                                   ? AutoSizeText(message,
                                       style: GoogleFonts.getFont(fontStyle,
+                                          // ignore: unnecessary_null_comparison
                                           color: (_colorCode == null)
                                               ? ColorsUtility.getColorForString(
                                                   fontColor, 0)
@@ -143,6 +149,7 @@ class ComposeMessageState extends State<ComposeMessage> {
                                   : Text(message, //autosizetext
                                       style: GoogleFonts.getFont(fontStyle,
                                           fontSize: fontSize,
+                                          // ignore: unnecessary_null_comparison
                                           color: (_colorCode == null)
                                               ? ColorsUtility.getColorForString(
                                                   fontColor, 0)
@@ -152,6 +159,7 @@ class ComposeMessageState extends State<ComposeMessage> {
                               decoration: BoxDecoration(
                                   borderRadius:
                                       BorderRadius.all(Radius.circular(20)),
+                                  // ignore: unnecessary_null_comparison
                                   color: (_bgColorCode == null)
                                       ? ColorsUtility.getColorForString(
                                           bgColor, 0)
@@ -181,14 +189,22 @@ class ComposeMessageState extends State<ComposeMessage> {
                                 _autoSize
                                     ? AutoSizeText(message,
                                         style: GoogleFonts.getFont(fontStyle,
-                                            color: (_colorCode == null)
-                                                ? ColorsUtility.getColorForString(
-                                                    fontColor, _colorCode)
-                                                : ColorsUtility.getColorForString(
-                                                    fontColor, _colorCode)))
+                                            // ignore: unnecessary_null_comparison
+                                            color:
+                                                // ignore: unnecessary_null_comparison
+                                                (_colorCode == null)
+                                                    ? ColorsUtility
+                                                        .getColorForString(
+                                                            fontColor,
+                                                            _colorCode)
+                                                    : ColorsUtility
+                                                        .getColorForString(
+                                                            fontColor,
+                                                            _colorCode)))
                                     : Text(message,
                                         style: GoogleFonts.getFont(fontStyle,
                                             fontSize: fontSize,
+                                            // ignore: unnecessary_null_comparison
                                             color: (_colorCode == null)
                                                 ? ColorsUtility
                                                     .getColorForString(
@@ -217,7 +233,7 @@ class ComposeMessageState extends State<ComposeMessage> {
                                   }),
                                   btnStringColor: Colors.white,
                                   activeBtnColor: Colors.black,
-                                  inactiveBtnColor: Colors.orange[400],
+                                  inactiveBtnColor: Colors.orange[400]!,
                                   btnStr1: 'Auto',
                                   btnStr2: 'Custom',
                                 )
@@ -290,7 +306,7 @@ class ComposeMessageState extends State<ComposeMessage> {
                                   }),
                                   btnStringColor: Colors.white,
                                   activeBtnColor: Colors.black,
-                                  inactiveBtnColor: Colors.orange[400],
+                                  inactiveBtnColor: Colors.orange[400]!,
                                   btnStr1: 'Random',
                                   btnStr2: 'Custom',
                                 )
@@ -310,7 +326,7 @@ class ComposeMessageState extends State<ComposeMessage> {
                                           fontColor =
                                               ColorsUtility.getStringForColor(
                                                   _randFontColor
-                                                      .selectedRandColor);
+                                                      .selectedRandColor)!;
                                           _colorCode =
                                               _randFontColor.selectedColorCode;
                                         });
@@ -320,6 +336,7 @@ class ComposeMessageState extends State<ComposeMessage> {
                                       height: 50,
                                       width: 50,
                                       decoration: BoxDecoration(
+                                          // ignore: unnecessary_null_comparison
                                           color: (_colorCode == null)
                                               ? ColorsUtility.getColorForString(
                                                   fontColor, 0)
@@ -331,7 +348,7 @@ class ComposeMessageState extends State<ComposeMessage> {
                                     )),
                                 GestureDetector(
                                     onTap: () {
-                                      bgImageUrl = null;
+                                      bgImageUrl = "";
                                       if (_customColor) {
                                         _isBgColor = true;
                                         slidupColors(context);
@@ -341,7 +358,7 @@ class ComposeMessageState extends State<ComposeMessage> {
                                           bgColor =
                                               ColorsUtility.getStringForColor(
                                                   _randBgColor
-                                                      .selectedRandColor);
+                                                      .selectedRandColor)!;
 
                                           _bgColorCode =
                                               _randBgColor.selectedColorCode;
@@ -352,6 +369,7 @@ class ComposeMessageState extends State<ComposeMessage> {
                                       height: 50,
                                       width: 50,
                                       decoration: BoxDecoration(
+                                          // ignore: unnecessary_null_comparison
                                           color: (_bgColorCode == null)
                                               ? ColorsUtility.getColorForString(
                                                   bgColor, 0)
@@ -377,6 +395,7 @@ class ComposeMessageState extends State<ComposeMessage> {
                                           'F',
                                           style: GoogleFonts.getFont(fontStyle,
                                               fontSize: 50,
+                                              // ignore: unnecessary_null_comparison
                                               color: (_colorCode == null)
                                                   ? ColorsUtility
                                                       .getColorForString(
@@ -429,8 +448,8 @@ class ComposeMessageState extends State<ComposeMessage> {
                                   .doc(conversationID)
                                   .set({
                                 'bgColor': bgColor,
-                                'bgColorID': _bgColorCode ?? 0,
-                                'fontColorID': _colorCode ?? 0,
+                                'bgColorID': _bgColorCode,
+                                'fontColorID': _colorCode,
                                 'fontColor': fontColor,
                                 'fontStyle': fontStyle,
                                 'fontSize': _autoSize ? 0.0 : fontSize,
@@ -447,12 +466,13 @@ class ComposeMessageState extends State<ComposeMessage> {
                                 'msgType': 'text',
                                 'msg': message,
                                 'bgColor': bgColor,
-                                'bgColorID': _bgColorCode ?? 0,
-                                'fontColorID': _colorCode ?? 0,
+                                'bgColorID': _bgColorCode,
+                                'fontColorID': _colorCode,
                                 'fontColor': fontColor,
                                 'fontStyle': fontStyle,
                                 'fontSize': _autoSize ? 0.0 : fontSize,
                                 'bgImageUrl':
+                                    // ignore: unnecessary_null_comparison
                                     (bgImageUrl == null) ? '' : bgImageUrl,
                                 'userID': user.userID,
                                 'timestamp': timestamp,
@@ -483,7 +503,7 @@ class ComposeMessageState extends State<ComposeMessage> {
   slidupColors(BuildContext context) {
     final query = MediaQuery.of(context);
     final height = query.size.height - 200;
-    controller = scaffoldState.currentState.showBottomSheet((context) {
+    controller = scaffoldState.currentState!.showBottomSheet((context) {
       return Container(
           height: height,
           child: _showShades
@@ -494,12 +514,12 @@ class ComposeMessageState extends State<ComposeMessage> {
                         icon: Icon(Icons.arrow_back),
                         onPressed: () {
                           if (_isBgColor) {
-                            controller.setState(() {
+                            controller.setState!(() {
                               _showShades = false;
                               _isBgColor = true;
                             });
                           } else {
-                            controller.setState(() {
+                            controller.setState!(() {
                               _showShades = false;
                               _isBgColor = false;
                             });
@@ -510,18 +530,18 @@ class ComposeMessageState extends State<ComposeMessage> {
                         ontap: (color, colorCode) {
                           setState(() {
                             if (_isBgColor) {
-                              _bgColorCode = null;
-                              bgColor = ColorsUtility.getStringForColor(color);
+                              _bgColorCode = -1;
+                              bgColor = ColorsUtility.getStringForColor(color)!;
                               _bgColorCode = colorCode;
                             } else {
-                              _colorCode = null;
+                              _colorCode = -1;
                               fontColor =
-                                  ColorsUtility.getStringForColor(color);
+                                  ColorsUtility.getStringForColor(color)!;
                               _colorCode = colorCode;
                             }
                           });
                         },
-                        color: selectedColor,
+                        color: selectedColor as MaterialColor,
                       )
                     ])
               : Column(
@@ -532,12 +552,12 @@ class ComposeMessageState extends State<ComposeMessage> {
                         ontap: (color) {
                           setState(() {
                             if (_isBgColor) {
-                              _bgColorCode = null;
-                              bgColor = ColorsUtility.getStringForColor(color);
+                              _bgColorCode = -1;
+                              bgColor = ColorsUtility.getStringForColor(color)!;
                             } else {
-                              _colorCode = null;
+                              _colorCode = -1;
                               fontColor =
-                                  ColorsUtility.getStringForColor(color);
+                                  ColorsUtility.getStringForColor(color)!;
                             }
                           });
                         },
@@ -545,12 +565,12 @@ class ComposeMessageState extends State<ComposeMessage> {
                         onDoubletap: (Color color) {
                           selectedColor = color;
                           if (_isBgColor) {
-                            controller.setState(() {
+                            controller.setState!(() {
                               _showShades = true;
                               _isBgColor = true;
                             });
                           } else {
-                            controller.setState(() {
+                            controller.setState!(() {
                               _showShades = true;
                               _isBgColor = false;
                             });
@@ -564,7 +584,7 @@ class ComposeMessageState extends State<ComposeMessage> {
   slidupFonts(BuildContext context) {
     final query = MediaQuery.of(context);
     final height = query.size.height - 200;
-    scaffoldState.currentState.showBottomSheet((context) {
+    scaffoldState.currentState!.showBottomSheet((context) {
       return Container(
         height: height,
         child: SelectFont(
@@ -599,14 +619,14 @@ class ToggleButton extends StatefulWidget {
   final bool btn1Selected;
   final void Function(String) ontap;
   const ToggleButton(
-      {Key key,
-      this.btn1Selected: true,
-      this.ontap,
-      this.btnStr1,
-      this.btnStr2,
-      this.activeBtnColor,
-      this.inactiveBtnColor,
-      this.btnStringColor})
+      {Key? key,
+      this.btn1Selected = true,
+      required this.ontap,
+      required this.btnStr1,
+      required this.btnStr2,
+      required this.activeBtnColor,
+      required this.inactiveBtnColor,
+      required this.btnStringColor})
       : super(key: key);
   @override
   State<StatefulWidget> createState() {
@@ -621,8 +641,8 @@ class ToggleButtonState extends State<ToggleButton> {
   final Color activeBtnColor;
   final Color inactiveBtnColor;
   final Color btnStringColor;
-  Color btn1Color;
-  Color btn2Color;
+  late Color btn1Color;
+  late Color btn2Color;
   bool btn1Selected;
   final void Function(String) ontap;
   ToggleButtonState(this.btn1Selected, this.ontap, this.btnStr1, this.btnStr2,

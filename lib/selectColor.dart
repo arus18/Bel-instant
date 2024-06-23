@@ -6,7 +6,11 @@ class SelectColor extends StatelessWidget {
   final PersistentBottomSheetController controller;
   final void Function(Color) onDoubletap;
   final void Function(Color) ontap;
-  const SelectColor({Key key, this.onDoubletap, this.controller,this.ontap})
+  const SelectColor(
+      {Key? key,
+      required this.onDoubletap,
+      required this.controller,
+      required this.ontap})
       : super(key: key);
   @override
   Widget build(BuildContext context) {
@@ -20,11 +24,11 @@ class SelectColor extends StatelessWidget {
         return Container(
           margin: EdgeInsets.all(10),
           child: GestureDetector(
-            onTap: (){
+            onTap: () {
               ontap(colors[index]);
             },
             onDoubleTap: () {
-              controller.setState(() {
+              controller.setState!(() {
                 onDoubletap(colors[index]);
               });
             },
@@ -39,11 +43,11 @@ class SelectColor extends StatelessWidget {
 
 class SelectColorShades extends StatelessWidget {
   final MaterialColor color;
-  final void Function(MaterialColor,int) ontap;
+  final void Function(MaterialColor, int) ontap;
   const SelectColorShades({
-    Key key,
-    this.color,
-    this.ontap,
+    Key? key,
+    required this.color,
+    required this.ontap,
   }) : super(key: key);
   @override
   Widget build(BuildContext context) {
@@ -56,9 +60,11 @@ class SelectColorShades extends StatelessWidget {
       itemBuilder: (BuildContext context, int index) {
         return Container(
           margin: EdgeInsets.all(10),
-          child: GestureDetector(onTap: (){
-            ontap(color,colorCodes[index]);
-          },),
+          child: GestureDetector(
+            onTap: () {
+              ontap(color, colorCodes[index]);
+            },
+          ),
           decoration: BoxDecoration(
               border: Border.all(color: Colors.black),
               shape: BoxShape.circle,

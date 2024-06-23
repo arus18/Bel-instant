@@ -1,11 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:interactive_message/fonts.dart';
+import 'fonts.dart';
 
 class SelectFont extends StatefulWidget {
   final void Function(String) ontap;
-  const SelectFont({Key key, this.ontap}) : super(key: key);
+  const SelectFont({Key? key, required this.ontap}) : super(key: key);
   @override
   State<StatefulWidget> createState() {
     return SelectFontState(ontap);
@@ -30,9 +30,10 @@ class SelectFontState extends State<SelectFont> {
               onPressed: () {
                 if (_scroll <= _controller.position.maxScrollExtent) {
                   final maxScrollExtent = _controller.position.maxScrollExtent;
-                  _scroll += maxScrollExtent/20;
+                  _scroll += maxScrollExtent / 20;
                   _controller.animateTo(_scroll,
-                      duration: Duration(milliseconds: 500), curve: Curves.easeIn);
+                      duration: Duration(milliseconds: 500),
+                      curve: Curves.easeIn);
                 }
               },
             ),
@@ -46,7 +47,8 @@ class SelectFontState extends State<SelectFont> {
                   _scroll -= 10000;
                 }
                 _controller.animateTo(_scroll,
-                    duration: Duration(milliseconds: 500), curve: Curves.easeIn);
+                    duration: Duration(milliseconds: 500),
+                    curve: Curves.easeIn);
               },
             )
           ],

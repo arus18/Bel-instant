@@ -37,7 +37,7 @@ List<int> colorCodes = [
 
 class ColorsUtility {
   int selectedColorCode = 0;
-  MaterialColor selectedRandColor;
+  late MaterialColor selectedRandColor;
   randomColor() {
     var random = new Random();
     final rand = random.nextInt(colors.length);
@@ -47,128 +47,129 @@ class ColorsUtility {
     selectedColorCode = colorCode;
   }
 
-  static Color getColorForString(String color, int colorCode) {
-    if(color == 'white'){
+  static Color? getColorForString(String color, int colorCode) {
+    if (color == 'white') {
       return Colors.white;
     }
     if (color == 'pink') {
-      if(colorCode == 0){
-           return Colors.pink;     
+      if (colorCode == 0) {
+        return Colors.pink;
       }
       return Colors.pink[colorCode];
     }
     if (color == 'red') {
-      if(colorCode == 0){
-           return Colors.red;     
+      if (colorCode == 0) {
+        return Colors.red;
       }
       return Colors.red[colorCode];
     }
     if (color == 'deepOrange') {
-      if(colorCode == 0){
-           return Colors.deepOrange;     
+      if (colorCode == 0) {
+        return Colors.deepOrange;
       }
       return Colors.deepOrange[colorCode];
     }
     if (color == 'orange') {
-      if(colorCode == 0){
-           return Colors.orange;     
+      if (colorCode == 0) {
+        return Colors.orange;
       }
       return Colors.orange[colorCode];
     }
     if (color == 'amber') {
-      if(colorCode == 0){
-           return Colors.amber;     
+      if (colorCode == 0) {
+        return Colors.amber;
       }
       return Colors.amber[colorCode];
     }
     if (color == 'yellow') {
-      if(colorCode == 0){
-           return Colors.yellow;     
+      if (colorCode == 0) {
+        return Colors.yellow;
       }
       return Colors.yellow[colorCode];
     }
     if (color == 'lime') {
-      if(colorCode == 0){
-           return Colors.lime;     
+      if (colorCode == 0) {
+        return Colors.lime;
       }
       return Colors.lime[colorCode];
     }
     if (color == 'lightGreen') {
-      if(colorCode == 0){
-           return Colors.lightGreen;     
+      if (colorCode == 0) {
+        return Colors.lightGreen;
       }
       return Colors.lightGreen[colorCode];
     }
     if (color == 'green') {
-      if(colorCode == 0){
-           return Colors.green;     
+      if (colorCode == 0) {
+        return Colors.green;
       }
       return Colors.green[colorCode];
     }
     if (color == 'teal') {
-      if(colorCode == 0){
-           return Colors.teal;     
+      if (colorCode == 0) {
+        return Colors.teal;
       }
       return Colors.teal[colorCode];
     }
     if (color == 'cyan') {
-      if(colorCode == 0){
-           return Colors.cyan;     
+      if (colorCode == 0) {
+        return Colors.cyan;
       }
       return Colors.cyan[colorCode];
     }
     if (color == 'lightBlue') {
-      if(colorCode == 0){
-           return Colors.lightBlue;     
+      if (colorCode == 0) {
+        return Colors.lightBlue;
       }
       return Colors.lightBlue[colorCode];
     }
     if (color == 'blue') {
-      if(colorCode == 0){
-           return Colors.blue;     
+      if (colorCode == 0) {
+        return Colors.blue;
       }
       return Colors.blue[colorCode];
     }
     if (color == 'indigo') {
-      if(colorCode == 0){
-           return Colors.indigo;     
+      if (colorCode == 0) {
+        return Colors.indigo;
       }
       return Colors.indigo[colorCode];
     }
     if (color == 'purple') {
-      if(colorCode == 0){
-           return Colors.purple;     
+      if (colorCode == 0) {
+        return Colors.purple;
       }
       return Colors.purple[colorCode];
     }
     if (color == 'deepPurple') {
-      if(colorCode == 0){
-           return Colors.deepPurple;     
+      if (colorCode == 0) {
+        return Colors.deepPurple;
       }
       return Colors.deepPurple[colorCode];
     }
     if (color == 'blueGrey') {
-      if(colorCode == 0){
-           return Colors.blueGrey;     
+      if (colorCode == 0) {
+        return Colors.blueGrey;
       }
       return Colors.blueGrey[colorCode];
     }
     if (color == 'brown') {
-      if(colorCode == 0){
-           return Colors.brown;     
+      if (colorCode == 0) {
+        return Colors.brown;
       }
       return Colors.brown[colorCode];
     }
     if (color == 'grey') {
-      if(colorCode == 0){
-           return Colors.grey;     
+      if (colorCode == 0) {
+        return Colors.grey;
       }
       return Colors.grey[colorCode];
     }
     return null;
   }
-  static String getStringForColor(Color color) {
-    if(color == Colors.white){
+
+  static String? getStringForColor(Color color) {
+    if (color == Colors.white) {
       return 'white';
     }
     if (color == Colors.pink) {

@@ -2,9 +2,9 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:interactive_message/contacts.dart';
-import 'package:interactive_message/conversation.dart';
-import 'package:interactive_message/user.dart';
+import 'contacts.dart';
+import 'conversation.dart';
+import 'user.dart';
 import 'package:dart_date/dart_date.dart';
 
 forwardText(
@@ -23,7 +23,7 @@ forwardText(
     final msgID = msgs.doc().id;
     await (msgs.doc(msgID).set({
       'msgType': 'text',
-      'msg': msgSnapshot.data()['msg'],
+      'msg': msgSnapshot['msg'],
       'userID': userID,
       'timestamp': timestamp,
       'name': user.userName
@@ -47,7 +47,7 @@ forwardImage(
   List<String> conversationID = map['conversationID'];
   String userID = user.userID;
   conversationID.forEach((conversationID) async {
-    final urls = msgSnapshot.data()['urls'];
+    final urls = msgSnapshot['urls'];
     final msgs = FirebaseFirestore.instance
         .collection('conversations')
         .doc(conversationID)
@@ -60,7 +60,7 @@ forwardImage(
         'userID': userID,
         'timestamp': timestamp,
         'name': user.userName,
-        'fileSize': msgSnapshot.data()['fileSize']
+        'fileSize': msgSnapshot['fileSize']
       }, SetOptions(merge: true)));
       setUnreadCount(
         conversationID,
@@ -72,12 +72,12 @@ forwardImage(
     } else {
       await (msgs.doc(msgID).set({
         'msgType': 'image',
-        'url': msgSnapshot.data()['url'],
-        'fileName': msgSnapshot.data()['fileName'],
+        'url': msgSnapshot['url'],
+        'fileName': msgSnapshot['fileName'],
         'userID': userID,
         'timestamp': timestamp,
         'name': user.userName,
-        'fileSize': msgSnapshot.data()['fileSize']
+        'fileSize': msgSnapshot['fileSize']
       }, SetOptions(merge: true)));
       setUnreadCount(
         conversationID,
@@ -106,13 +106,13 @@ forwardAudio(
     final msgID = msgs.doc().id;
     await (msgs.doc(msgID).set({
       'msgType': 'audio',
-      'url': msgSnapshot.data()['url'],
-      'fileName': msgSnapshot.data()['fileName'],
+      'url': msgSnapshot['url'],
+      'fileName': msgSnapshot['fileName'],
       'userID': userID,
       'timestamp': timestamp,
       'name': user.userName,
-      'fileSize': msgSnapshot.data()['fileSize'],
-      'duration': msgSnapshot.data()['duration']
+      'fileSize': msgSnapshot['fileSize'],
+      'duration': msgSnapshot['duration']
     }, SetOptions(merge: true)));
     setUnreadCount(
       conversationID,
@@ -182,31 +182,27 @@ sendImage(
       .doc(conversationID)
       .collection('msgs');
   final ref = FirebaseStorage.instance.ref();
-  final Map<StorageUploadTask, String> tasks = Map<StorageUploadTask, String>();
+  final Map<UploadTask, String> tasks = Map<UploadTask, String>();
   for (final name in files.keys) {
     String fileName = DateTime.now().millisecondsSinceEpoch.toString() + name;
     fileName = fileName.replaceAll('/', '');
     final path = conversationID + '/' + fileName;
-    final task = ref.child(path).putFile(File(files[name]));
+    final task = ref.child(path).putFile(File(files[name]!));
     tasks[task] = fileName;
     conversationState.uploadProgress.add(task);
     newUploadAdded.value = true;
-    task.onComplete.whenComplete(() {
+    task.whenComplete(() {
       conversationState.uploadProgress.remove(task);
       newUploadAdded.value = false;
     });
-    fileSizeMap[fileName] = await File(files[name]).length();
+    fileSizeMap[fileName] = await File(files[name]!).length();
   }
-  await Future.forEach(tasks.keys, (StorageUploadTask task) async {
-    if (task.isCanceled) {
-      return;
-    } else {
-      try {
-        final taskSnapshot = await task.onComplete;
-        final mediaUrl = await taskSnapshot.ref.getDownloadURL();
-        map[mediaUrl] = tasks[task];
-      } catch (e) {}
-    }
+  await Future.forEach(tasks.keys, (UploadTask task) async {
+    try {
+      final taskSnapshot = await task;
+      final mediaUrl = await taskSnapshot.ref.getDownloadURL();
+      map[mediaUrl] = tasks[task]!;
+    } catch (e) {}
   });
   if (map.length == files.length) {
     //if upload canceled
@@ -274,51 +270,48 @@ sendAudio(
     String fileName = name;
     fileName = fileName.replaceAll('/', '');
     final path = conversationID + '/' + fileName;
-    final task = ref.child(path).putFile(File(files[name]));
+    final task = ref.child(path).putFile(File(files[name]!));
     conversationState.uploadProgress.add(task);
     newUploadAdded.value = true;
-    task.onComplete.whenComplete(() {
+    task.whenComplete(() {
       conversationState.uploadProgress.remove(task);
       newUploadAdded.value = false;
     });
-    fileSizeMap[fileName] = await File(files[name]).length();
-    if (task.isCanceled) {
-      return;
-    } else {
-      try {
-        final taskSnapshot = await task.onComplete;
-        final mediaUrl = await taskSnapshot.ref.getDownloadURL();
-        final msgID = msgs.doc().id;
-        final timestamp = DateTime.now().millisecondsSinceEpoch;
-        await (msgs.doc(msgID).set({
-          'msgType': 'audio',
-          'url': mediaUrl,
-          'fileName': fileName,
-          'userID': userID,
-          'timestamp': timestamp,
-          'fileSize': fileSizeMap[fileName],
-          'name': user.userName,
-          'duration': duration
-        }, SetOptions(merge: true)));
-        setUnreadCount(
-          conversationID,
-          msgID,
-          userID,
-          timestamp,
-          user,
-        );
-      } catch (e) {}
-    }
+    fileSizeMap[fileName] = await File(files[name]!).length();
+
+    try {
+      final taskSnapshot = await task;
+      final mediaUrl = await taskSnapshot.ref.getDownloadURL();
+      final msgID = msgs.doc().id;
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      await (msgs.doc(msgID).set({
+        'msgType': 'audio',
+        'url': mediaUrl,
+        'fileName': fileName,
+        'userID': userID,
+        'timestamp': timestamp,
+        'fileSize': fileSizeMap[fileName],
+        'name': user.userName,
+        'duration': duration
+      }, SetOptions(merge: true)));
+      setUnreadCount(
+        conversationID,
+        msgID,
+        userID,
+        timestamp,
+        user,
+      );
+    } catch (e) {}
   });
 }
 
 setUnreadCount(String conversationID, String msgID, String userID,
     int dateUpdate, User user,
-    {bool isUpdateInfo: false}) async {
+    {bool isUpdateInfo = false}) async {
   final ref = FirebaseFirestore.instance;
   final conversationSnapshot =
       await ref.collection('conversations').doc(conversationID).get();
-  final timestamp = conversationSnapshot.data()['timestamp'];
+  final timestamp = conversationSnapshot['timestamp'];
   _updateTimeInfo(
     timestamp,
     conversationID,
@@ -331,8 +324,8 @@ setUnreadCount(String conversationID, String msgID, String userID,
       .collection('participants')
       .get();
   for (final participant in participants.docs) {
-    final String status = participant.data()['status'];
-    final regionCode = participant.data()['regionCode'] ?? user.userID;
+    final String status = participant['status'];
+    final regionCode = participant['regionCode'] ?? user.userID;
     ref
         .collection('users')
         .doc(regionCode)
@@ -370,8 +363,8 @@ setUnreadCount(String conversationID, String msgID, String userID,
             .doc(participant.id)
             .set({
           'timestamp': DateTime.now().millisecondsSinceEpoch,
-          'displayPictureUrl': participant.data()['displayPictureUrl'],
-          'name': participant.data()['name']
+          'displayPictureUrl': participant['displayPictureUrl'],
+          'name': participant['name']
         });
       }
       _setLastReadMsgTimestamp(
@@ -383,14 +376,13 @@ setUnreadCount(String conversationID, String msgID, String userID,
 _setTimestampDelay(String userID, String regionCode, String conversationID,
     int timestamp) async {
   final delayedTimestamp = (await FirebaseFirestore.instance
-          .collection('users')
-          .doc(regionCode)
-          .collection('users')
-          .doc(userID)
-          .collection('conversations')
-          .doc(conversationID)
-          .get())
-      .data()['timeDelayTimestamp'];
+      .collection('users')
+      .doc(regionCode)
+      .collection('users')
+      .doc(userID)
+      .collection('conversations')
+      .doc(conversationID)
+      .get())['timeDelayTimestamp'];
   if ((timestamp - delayedTimestamp) > 120000) {
     FirebaseFirestore.instance
         .collection('users')
@@ -416,7 +408,7 @@ _setLastReadMsgTimestamp(String conversationID, int lastReadMsgTimestamp,
       .limit(10)
       .get();
   if (snapshot.docs.isNotEmpty) {
-    final timestamp = snapshot.docs.last.data()['timestamp'];
+    final timestamp = snapshot.docs.last['timestamp'];
 
     if (timestamp != lastReadMsgTimestamp) {
       FirebaseFirestore.instance

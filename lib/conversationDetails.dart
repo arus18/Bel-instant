@@ -7,10 +7,10 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:interactive_message/contacts.dart';
-import 'package:interactive_message/home.dart';
-import 'package:interactive_message/user.dart';
-import 'package:interactive_message/sendMsgs.dart';
+import 'contacts.dart';
+import 'home.dart';
+import 'user.dart';
+import 'sendMsgs.dart';
 import 'package:loading_animations/loading_animations.dart';
 
 class ConversationDetails extends StatefulWidget {
@@ -23,14 +23,14 @@ class ConversationDetails extends StatefulWidget {
   final String userIDconversationWith;
 
   const ConversationDetails({
-    Key key,
-    this.user,
-    this.conversationID,
-    this.displayPictureUrl,
-    this.name,
-    this.phoneNumber,
-    this.isGroupChat,
-    this.userIDconversationWith,
+    Key? key,
+    required this.user,
+    required this.conversationID,
+    required this.displayPictureUrl,
+    required this.name,
+    required this.phoneNumber,
+    required this.isGroupChat,
+    required this.userIDconversationWith,
   }) : super(key: key);
   @override
   State<StatefulWidget> createState() {
@@ -39,14 +39,14 @@ class ConversationDetails extends StatefulWidget {
 }
 
 class ConversationDetailsState extends State<ConversationDetails> {
-  QuerySnapshot _participants;
+  late QuerySnapshot _participants;
   bool _sendNotifications = false;
-  bool _isBlocked;
+  late bool _isBlocked;
   bool _noInternetConnection = false;
   bool _uploading = false;
   bool _editName = false;
   bool _editNameInProgress = false;
-  String _imagePath;
+  late String _imagePath;
   final _controller = TextEditingController();
   FocusNode _focusNode = FocusNode();
   @override
@@ -78,13 +78,13 @@ class ConversationDetailsState extends State<ConversationDetails> {
       if (!widget.isGroupChat) {
         final conversationSnapshot = await (FirebaseFirestore.instance
             .collection('users')
-            .doc(regionCodeSnapshot.data()['regionCode'])
+            .doc(regionCodeSnapshot['regionCode'])
             .collection('users')
             .doc(widget.userIDconversationWith)
             .collection('conversations')
             .doc(widget.conversationID)
             .get());
-        _isBlocked = conversationSnapshot.data()['blocked'] ?? false;
+        _isBlocked = conversationSnapshot['blocked'] ?? false;
       }
       _participants = await (FirebaseFirestore.instance
           .collection('conversations')
@@ -98,7 +98,7 @@ class ConversationDetailsState extends State<ConversationDetails> {
           .collection('participants')
           .doc(widget.user.userID)
           .get());
-      _sendNotifications = _participant.data()['sendNotifications'];
+      _sendNotifications = _participant['sendNotifications'];
 
       setState(() {});
     } else {
@@ -129,159 +129,162 @@ class ConversationDetailsState extends State<ConversationDetails> {
                           child: Column(
                               mainAxisAlignment: MainAxisAlignment.start,
                               children: <Widget>[
-                          Stack(alignment: Alignment.bottomRight, children: <
-                              Widget>[
-                            Center(
-                                child: Container(
-                              constraints:
-                                  BoxConstraints(maxHeight: height / 2),
-                              child: (_imagePath != null)
-                                  ? Image(image: FileImage(File(_imagePath)))
-                                  : widget.displayPictureUrl.isEmpty
-                                      ? Container()
-                                      : CachedNetworkImage(
-                                          imageUrl: widget.displayPictureUrl),
-                            )),
-                            _uploading
-                                ? LoadingBumpingLine.circle(
-                                    backgroundColor: Colors.yellow,
-                                  )
-                                : Row(children: <Widget>[
-                                    IconButton(
-                                      onPressed: () async {
-                                        FilePickerResult result;
-                                        try {
-                                          result = await FilePicker.platform
-                                              .pickFiles(
-                                            type: FileType.image,
-                                          );
-                                        } catch (e) {}
-                                        if (result != null) {
-                                          _imagePath = result.files.single.path;
-                                          setState(() {
-                                            _uploading = true;
-                                          });
-                                          final ref =
-                                              FirebaseStorage.instance.ref();
-                                          final fileName = DateTime.now()
-                                                  .millisecondsSinceEpoch
-                                                  .toString() +
-                                              'profilePic';
-                                          final path = widget.user.userID +
-                                              '/' +
-                                              widget.conversationID +
-                                              '/profilePic/' +
-                                              fileName;
-                                          final task = await (ref
+                          Stack(
+                              alignment: Alignment.bottomRight,
+                              children: <Widget>[
+                                Center(
+                                    child: Container(
+                                  constraints:
+                                      BoxConstraints(maxHeight: height / 2),
+                                  child: (_imagePath != null)
+                                      ? Image(
+                                          image: FileImage(File(_imagePath)))
+                                      : widget.displayPictureUrl.isEmpty
+                                          ? Container()
+                                          : CachedNetworkImage(
+                                              imageUrl:
+                                                  widget.displayPictureUrl),
+                                )),
+                                _uploading
+                                    ? LoadingBumpingLine.circle(
+                                        backgroundColor: Colors.yellow,
+                                      )
+                                    : Row(children: <Widget>[
+                                        IconButton(
+                                          onPressed: () async {
+                                            FilePickerResult result;
+                                            try {
+                                              result = (await FilePicker
+                                                  .platform
+                                                  .pickFiles(
+                                                type: FileType.image,
+                                              ))!;
+
+                                              _imagePath =
+                                                  result.files.single.path!;
+                                              setState(() {
+                                                _uploading = true;
+                                              });
+                                              final ref = FirebaseStorage
+                                                  .instance
+                                                  .ref();
+                                              final fileName = DateTime.now()
+                                                      .millisecondsSinceEpoch
+                                                      .toString() +
+                                                  'profilePic';
+                                              final path = widget.user.userID +
+                                                  '/' +
+                                                  widget.conversationID +
+                                                  '/profilePic/' +
+                                                  fileName;
+                                              final task = await (ref
                                                   .child(path)
-                                                  .putFile(File(_imagePath)))
-                                              .onComplete;
-                                          final mediaUrl =
-                                              await task.ref.getDownloadURL();
-                                          _updateAllDisplayPictureAppearences(
-                                              mediaUrl);
-                                          final msgID = FirebaseFirestore
-                                              .instance
-                                              .collection('conversations')
-                                              .doc(widget.conversationID)
-                                              .collection('msgs')
-                                              .doc()
-                                              .id;
-                                          final timestamp = DateTime.now()
-                                              .millisecondsSinceEpoch;
-                                          FirebaseFirestore.instance
-                                              .collection('conversations')
-                                              .doc(widget.conversationID)
-                                              .collection('msgs')
-                                              .doc(msgID)
-                                              .set({
-                                            'msgType': 'updateInfo',
-                                            'info':
-                                                '${widget.user.userName} changed group icon',
-                                            'timestamp': timestamp
-                                          });
-                                          setUnreadCount(
-                                              widget.conversationID,
-                                              msgID,
-                                              widget.user.userID,
-                                              timestamp,
-                                              widget.user,
-                                              isUpdateInfo: true);
-                                          setState(() {
-                                            _uploading = false;
-                                          });
-                                        }
-                                      },
-                                      icon: Icon(Icons.photo),
-                                    ),
-                                    IconButton(
-                                      onPressed: () async {
-                                        final picker = ImagePicker();
-                                        PickedFile result;
-                                        try {
-                                          result = await picker.getImage(
-                                              source: ImageSource.camera);
-                                        } catch (e) {}
-                                        if (result != null) {
-                                          _imagePath = result.path;
-                                          setState(() {
-                                            _uploading = true;
-                                          });
-                                          final ref =
-                                              FirebaseStorage.instance.ref();
-                                          final fileName = DateTime.now()
-                                                  .millisecondsSinceEpoch
-                                                  .toString() +
-                                              'profilePic';
-                                          final path = widget.user.userID +
-                                              '/' +
-                                              widget.conversationID +
-                                              '/profilePic/' +
-                                              fileName;
-                                          final task = await (ref
-                                                  .child(path)
-                                                  .putFile(File(_imagePath)))
-                                              .onComplete;
-                                          final mediaUrl =
-                                              await task.ref.getDownloadURL();
-                                          _updateAllDisplayPictureAppearences(
-                                              mediaUrl);
-                                          final msgID = FirebaseFirestore
-                                              .instance
-                                              .collection('conversations')
-                                              .doc(widget.conversationID)
-                                              .collection('msgs')
-                                              .doc()
-                                              .id;
-                                          final timestamp = DateTime.now()
-                                              .millisecondsSinceEpoch;
-                                          FirebaseFirestore.instance
-                                              .collection('conversations')
-                                              .doc(widget.conversationID)
-                                              .collection('msgs')
-                                              .doc(msgID)
-                                              .set({
-                                            'msgType': 'updateInfo',
-                                            'info':
-                                                '${widget.user.userName} changed group icon',
-                                            'timestamp': timestamp
-                                          });
-                                          setUnreadCount(
-                                              widget.conversationID,
-                                              msgID,
-                                              widget.user.userID,
-                                              timestamp,
-                                              widget.user,
-                                              isUpdateInfo: true);
-                                          setState(() {
-                                            _uploading = false;
-                                          });
-                                        }
-                                      },
-                                      icon: Icon(Icons.camera),
-                                    )
-                                  ])
-                          ]),
+                                                  .putFile(File(_imagePath)));
+                                              final mediaUrl = await task.ref
+                                                  .getDownloadURL();
+                                              _updateAllDisplayPictureAppearences(
+                                                  mediaUrl);
+                                              final msgID = FirebaseFirestore
+                                                  .instance
+                                                  .collection('conversations')
+                                                  .doc(widget.conversationID)
+                                                  .collection('msgs')
+                                                  .doc()
+                                                  .id;
+                                              final timestamp = DateTime.now()
+                                                  .millisecondsSinceEpoch;
+                                              FirebaseFirestore.instance
+                                                  .collection('conversations')
+                                                  .doc(widget.conversationID)
+                                                  .collection('msgs')
+                                                  .doc(msgID)
+                                                  .set({
+                                                'msgType': 'updateInfo',
+                                                'info':
+                                                    '${widget.user.userName} changed group icon',
+                                                'timestamp': timestamp
+                                              });
+                                              setUnreadCount(
+                                                  widget.conversationID,
+                                                  msgID,
+                                                  widget.user.userID,
+                                                  timestamp,
+                                                  widget.user,
+                                                  isUpdateInfo: true);
+                                              setState(() {
+                                                _uploading = false;
+                                              });
+                                            } catch (e) {}
+                                            // ignore: unnecessary_null_comparison
+                                          },
+                                          icon: Icon(Icons.photo),
+                                        ),
+                                        IconButton(
+                                          onPressed: () async {
+                                            final picker = ImagePicker();
+                                            PickedFile result;
+                                            try {
+                                              result = (await picker.pickImage(
+                                                  source: ImageSource
+                                                      .camera))! as PickedFile;
+                                              _imagePath = result.path;
+                                            } catch (e) {}
+                                            setState(() {
+                                              _uploading = true;
+                                            });
+                                            final ref =
+                                                FirebaseStorage.instance.ref();
+                                            final fileName = DateTime.now()
+                                                    .millisecondsSinceEpoch
+                                                    .toString() +
+                                                'profilePic';
+                                            final path = widget.user.userID +
+                                                '/' +
+                                                widget.conversationID +
+                                                '/profilePic/' +
+                                                fileName;
+                                            final task = await (ref
+                                                .child(path)
+                                                .putFile(File(_imagePath)));
+                                            final mediaUrl =
+                                                await task.ref.getDownloadURL();
+                                            _updateAllDisplayPictureAppearences(
+                                                mediaUrl);
+                                            final msgID = FirebaseFirestore
+                                                .instance
+                                                .collection('conversations')
+                                                .doc(widget.conversationID)
+                                                .collection('msgs')
+                                                .doc()
+                                                .id;
+                                            final timestamp = DateTime.now()
+                                                .millisecondsSinceEpoch;
+                                            FirebaseFirestore.instance
+                                                .collection('conversations')
+                                                .doc(widget.conversationID)
+                                                .collection('msgs')
+                                                .doc(msgID)
+                                                .set({
+                                              'msgType': 'updateInfo',
+                                              'info':
+                                                  '${widget.user.userName} changed group icon',
+                                              'timestamp': timestamp
+                                            });
+                                            setUnreadCount(
+                                                widget.conversationID,
+                                                msgID,
+                                                widget.user.userID,
+                                                timestamp,
+                                                widget.user,
+                                                isUpdateInfo: true);
+                                            setState(() {
+                                              _uploading = false;
+                                            });
+                                          },
+                                          icon: Icon(Icons.camera),
+                                        )
+                                      ])
+                              ]),
                           _editNameInProgress
                               ? LoadingBumpingLine.circle(
                                   backgroundColor: Colors.yellow,
@@ -381,7 +384,7 @@ class ConversationDetailsState extends State<ConversationDetails> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: <Widget>[
-                              FlatButton(
+                              TextButton(
                                 onPressed: () {
                                   setState(() {
                                     if (_sendNotifications) {
@@ -396,13 +399,12 @@ class ConversationDetailsState extends State<ConversationDetails> {
                                     ? Icons.notifications_active
                                     : Icons.notifications_off),
                               ),
-                              FlatButton(
-                                color: Colors.yellow,
+                              TextButton(
                                 onPressed: () {
                                   Navigator.of(context).pushAndRemoveUntil(
                                       MaterialPageRoute(
-                                        builder: (context) => Home(
-                                          user: widget.user,
+                                        builder: (context) => HomeState(
+                                          widget.user,
                                         ),
                                       ),
                                       (Route<dynamic> route) => false);
@@ -411,8 +413,8 @@ class ConversationDetailsState extends State<ConversationDetails> {
                                 },
                                 child: Text('Left'),
                               ),
-                              FlatButton(
-                                color: Colors.yellow,
+                              TextButton(
+                                //color: Colors.yellow,
                                 onPressed: () {
                                   Navigator.push(context, MaterialPageRoute(
                                       builder: (BuildContext context) {
@@ -425,6 +427,11 @@ class ConversationDetailsState extends State<ConversationDetails> {
                                       displayPictureUrl:
                                           widget.displayPictureUrl,
                                       conversationID: widget.conversationID,
+                                      fileName: '',
+                                      fileSize: 0,
+                                      fileUrl: '',
+                                      forward: false,
+                                      forwardMsgList: [],
                                     );
                                   }));
                                 },
@@ -439,10 +446,9 @@ class ConversationDetailsState extends State<ConversationDetails> {
                             itemBuilder: (BuildContext context, index) {
                               final participant = _participants.docs[index];
                               final String displayPictureUrl =
-                                  participant.data()['displayPictureUrl'] ?? '';
-                              final name = participant.data()['name'];
-                              final phoneNumber =
-                                  participant.data()['phoneNumber'];
+                                  participant['displayPictureUrl'] ?? '';
+                              final name = participant['name'];
+                              final phoneNumber = participant['phoneNumber'];
                               return (name != null)
                                   ? ListTile(
                                       leading: displayPictureUrl.isEmpty
@@ -482,8 +488,8 @@ class ConversationDetailsState extends State<ConversationDetails> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: <Widget>[
-                            FlatButton(
-                              color: Colors.yellow,
+                            TextButton(
+                              //color: Colors.yellow,
                               onPressed: () {
                                 setState(() {
                                   if (_isBlocked) {
@@ -496,7 +502,7 @@ class ConversationDetailsState extends State<ConversationDetails> {
                               },
                               child: Text(_isBlocked ? 'Unblock' : 'Block'),
                             ),
-                            FlatButton(
+                            TextButton(
                               onPressed: () {
                                 setState(() {
                                   if (_sendNotifications) {
@@ -520,7 +526,7 @@ class ConversationDetailsState extends State<ConversationDetails> {
 
   _updateAllDisplayPictureAppearences(String mediaUrl) {
     _participants.docs.forEach((participant) {
-      final regionCode = participant.data()['regionCode'];
+      final regionCode = participant['regionCode'];
       final userID = participant.id;
       FirebaseFirestore.instance
           .collection('users')
@@ -537,7 +543,7 @@ class ConversationDetailsState extends State<ConversationDetails> {
 
   _updateAllNameAppearences(String name) {
     _participants.docs.forEach((participant) {
-      final regionCode = participant.data()['regionCode'];
+      final regionCode = participant['regionCode'];
       final userID = participant.id;
       FirebaseFirestore.instance
           .collection('users')
@@ -615,7 +621,7 @@ class ConversationDetailsState extends State<ConversationDetails> {
         .id;
     FirebaseFirestore.instance
         .collection('users')
-        .doc(regionCodeSnapshot.data()['regionCode'])
+        .doc(regionCodeSnapshot['regionCode'])
         .collection('users')
         .doc(widget.userIDconversationWith)
         .collection('conversations')

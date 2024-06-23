@@ -3,15 +3,14 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bubble/bubble.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:interactive_message/conversation.dart';
-import 'package:interactive_message/read.dart';
-import 'package:interactive_message/sendMsgs.dart';
-import 'package:interactive_message/textFullview.dart';
-import 'package:interactive_message/user.dart';
+import 'conversation.dart';
+import 'read.dart';
+import 'sendMsgs.dart';
+import 'textFullview.dart';
+import 'user.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class TextMsg extends StatefulWidget {
-  
   final int timeMsgCreated;
   final String userNameWhoCreated;
   final bool isGroupChat;
@@ -32,7 +31,6 @@ class TextMsg extends StatefulWidget {
   final bool isCustom;
   final int twentiethMsgTimestamp;
   TextMsg(
-    
     this.user,
     this.conversationState,
     this.conversationID,
@@ -42,16 +40,16 @@ class TextMsg extends StatefulWidget {
     this.isGroupChat,
     this.userNameWhoCreated,
     this.timeMsgCreated, {
-    this.bgColor,
-    this.fontStyle,
-    this.fontColor,
-    this.fontSize,
-    this.message,
-    this.bgImageUrl,
-    this.isCustom,
-    this.isEmojiKeyBoardVisible,
-    this.scrollController,
-    this.twentiethMsgTimestamp,
+    required this.bgColor,
+    required this.fontStyle,
+    required this.fontColor,
+    required this.fontSize,
+    required this.message,
+    required this.bgImageUrl,
+    required this.isCustom,
+    required this.isEmojiKeyBoardVisible,
+    required this.scrollController,
+    required this.twentiethMsgTimestamp,
   });
   @override
   State<StatefulWidget> createState() {
@@ -88,7 +86,7 @@ class TextMsgState extends State<TextMsg> {
   final String bgImageUrl;
   final bool isCustom;
   final _focusNode = FocusNode();
-  ForwardSnap _forwardSnap;
+  late ForwardSnap _forwardSnap;
   bool _isSelected = false;
   TextMsgState(
       this.user,
@@ -108,7 +106,6 @@ class TextMsgState extends State<TextMsg> {
   @override
   void initState() {
     _forwardSnap = ForwardSnap(
-      
         msgID,
         conversationID,
         'text',
@@ -197,7 +194,10 @@ class TextMsgState extends State<TextMsg> {
                                     conversationState.scrollCount;
                                 widget.scrollController
                                     .jumpTo(index: scrollCount);
-                                sendText(map, user,);
+                                sendText(
+                                  map,
+                                  user,
+                                );
                               },
                               icon: Icon(Icons.send),
                             ),
@@ -212,7 +212,6 @@ class TextMsgState extends State<TextMsg> {
               });
         },
         child: Container(
-            
             color: _isSelected ? Colors.lightGreen : Colors.white,
             padding: EdgeInsets.all(3),
             child: Column(
@@ -283,7 +282,7 @@ class TextMsgState extends State<TextMsg> {
                   Container(
                       margin: EdgeInsets.only(top: 2),
                       child: Text(
-                        '$hour:'+mins,
+                        '$hour:' + mins,
                         style: TextStyle(fontSize: 10),
                       )),
                   !widget.isGroupChat

@@ -5,17 +5,17 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:interactive_message/contacts.dart';
-import 'package:interactive_message/home.dart';
-import 'package:interactive_message/updateFunctions.dart';
-import 'package:interactive_message/user.dart';
+import 'contacts.dart';
+import 'home.dart';
+import 'updateFunctions.dart';
+import 'user.dart';
 import 'package:loading_animations/loading_animations.dart';
 
 class InitializeDisplayPictureName extends StatefulWidget {
   final User user;
   final bool forNewGroup;
   const InitializeDisplayPictureName(
-      {Key key, this.forNewGroup: false, this.user})
+      {Key? key, this.forNewGroup = false, required this.user})
       : super(key: key);
   @override
   State<StatefulWidget> createState() {
@@ -41,7 +41,8 @@ class InitializeDisplayPictureNameState
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
     return Scaffold(
-      bottomNavigationBar: Container(height: 50,child: Center(child: Text('Ad'))),
+      bottomNavigationBar:
+          Container(height: 50, child: Center(child: Text('Ad'))),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -61,12 +62,12 @@ class InitializeDisplayPictureNameState
                 IconButton(
                   onPressed: () async {
                     try {
-                      FilePickerResult result =
+                      FilePickerResult? result =
                           await FilePicker.platform.pickFiles(
                         type: FileType.image,
                       );
                       if (result != null) {
-                        _imagePath = result.files.single.path;
+                        _imagePath = result.files.single.path!;
                       }
                     } catch (e) {}
                     setState(() {});
@@ -78,7 +79,7 @@ class InitializeDisplayPictureNameState
                     final picker = ImagePicker();
                     try {
                       final result =
-                          await picker.getImage(source: ImageSource.camera);
+                          await picker.pickImage(source: ImageSource.camera);
                       if (result != null) {
                         _imagePath = result.path;
                       }
@@ -130,6 +131,13 @@ class InitializeDisplayPictureNameState
                                     newGroupInvite: true,
                                     groupDisplayPicture: _imagePath,
                                     groupName: _controller.text,
+                                    conversationID: '',
+                                    displayPictureUrl: '',
+                                    fileName: '',
+                                    fileUrl: '',
+                                    fileSize: 0,
+                                    forward: false,
+                                    forwardMsgList: [],
                                   )));
                     } else {
                       _focusNode.unfocus();
@@ -144,8 +152,7 @@ class InitializeDisplayPictureNameState
                                 'profilePic';
                         final path = user.userID + '/profilePic/' + fileName;
                         final task =
-                            await (ref.child(path).putFile(File(_imagePath)))
-                                .onComplete;
+                            await (ref.child(path).putFile(File(_imagePath)));
                         mediaUrl = await task.ref.getDownloadURL();
                       }
                       FirebaseFirestore.instance
@@ -154,21 +161,22 @@ class InitializeDisplayPictureNameState
                           .collection('users')
                           .doc('${user.userID}')
                           .set({'displayPictureUrl': mediaUrl},
-                              SetOptions(merge:true));
+                              SetOptions(merge: true));
                       FirebaseFirestore.instance
                           .collection('users')
                           .doc(user.regionCode)
                           .collection('users')
                           .doc('${user.userID}')
-                          .set({'name': _controller.text}, SetOptions(merge:true));
+                          .set({'name': _controller.text},
+                              SetOptions(merge: true));
                       user.userName = _controller.text;
                       user.profilePhotUrl = mediaUrl;
                       updateAllNameAppearences(user, _controller.text);
                       updateAllDisplayPictureAppearences(user, mediaUrl);
                       Navigator.pushReplacement(context,
                           MaterialPageRoute(builder: (BuildContext context) {
-                        return Home(
-                          user: user,
+                        return HomeState(
+                          user,
                         );
                       }));
                     }

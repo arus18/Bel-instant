@@ -4,12 +4,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:interactive_message/countrycodes.dart';
-import 'package:interactive_message/help.dart';
-import 'package:interactive_message/refreshcontacts.dart';
-import 'package:interactive_message/user.dart' as local;
+import 'countrycodes.dart';
+import 'help.dart';
+import 'refreshcontacts.dart';
+import 'user.dart' as local;
 import 'package:loading_animations/loading_animations.dart';
-import 'package:sim_info/sim_info.dart';
 
 class Authentication extends StatefulWidget {
   @override
@@ -21,13 +20,13 @@ class Authentication extends StatefulWidget {
 class AuthenticationState extends State<Authentication> {
   String _selectedRegionCode = 'IN';
   String _selectedCountryCode = '+91';
-  String _verificationID;
+  late String _verificationID;
   bool _codeAutoRetrievalTimeout = false;
   bool _autoOtpVerificationRunning = false;
   bool _manualOtpVerificationRunning = false;
   bool _autoFormat = true;
   bool _initialized = false;
-  bool _hasInternetConnection;
+  late bool _hasInternetConnection;
   bool hide = false;
   final _autoOTPfocusNode = FocusNode();
   final _manualOTPfocusNode = FocusNode();
@@ -50,7 +49,8 @@ class AuthenticationState extends State<Authentication> {
 
   _init() async {
     try {
-      String isoCountryCode = await SimInfo.getIsoCountryCode;
+      String isoCountryCode = "IN";
+      // ignore: unnecessary_null_comparison
       if (isoCountryCode != null) {
         _selectedRegionCode = isoCountryCode.toUpperCase();
         final temp = regionCodeCountryCode[isoCountryCode.toUpperCase()];
@@ -97,9 +97,9 @@ class AuthenticationState extends State<Authentication> {
                                 value: _selectedRegionCode,
                                 onChanged: (selected) {
                                   setState(() {
-                                    _selectedRegionCode = selected;
+                                    _selectedRegionCode = selected!;
                                     _selectedCountryCode =
-                                        regionCodeCountryCode[selected];
+                                        regionCodeCountryCode[selected]!;
                                   });
                                 },
                                 items: regionCodeCountryCode.keys.map((rgCode) {
@@ -123,7 +123,7 @@ class AuthenticationState extends State<Authentication> {
                                               selected;
                                         });
                                   setState(() {
-                                    _selectedCountryCode = selected;
+                                    _selectedCountryCode = selected!;
                                   });
                                 },
                                 items: countryCodesForDropDownMenu
@@ -151,7 +151,7 @@ class AuthenticationState extends State<Authentication> {
                                                   regionCodeNationalNumberLength[
                                                       _selectedRegionCode];
                                               if (value.length >
-                                                  nationalNumberLength) {
+                                                  nationalNumberLength!) {
                                                 final startIndex =
                                                     value.length -
                                                         nationalNumberLength;
@@ -275,8 +275,8 @@ class AuthenticationState extends State<Authentication> {
   }
 
   Future<local.User> _initUser(User user) async {
-    final FirebaseMessaging _fcm = FirebaseMessaging();
-    final String fcmToken = await _fcm.getToken();
+    final FirebaseMessaging _fcm = FirebaseMessaging.instance;
+    final String? fcmToken = await _fcm.getToken();
     FirebaseFirestore.instance
         .collection('userRegionCodes')
         .doc(user.uid)
@@ -293,8 +293,8 @@ class AuthenticationState extends State<Authentication> {
       'name': '',
       'displayPictureUrl': '',
     });
-    return local.User('', user.phoneNumber, _selectedCountryCode, user.uid,
-        _selectedRegionCode, '', fcmToken);
+    return local.User('', user.phoneNumber!, _selectedCountryCode, user.uid,
+        _selectedRegionCode, '', fcmToken!);
   }
 
   _autoOtpVerification() async {
@@ -311,7 +311,7 @@ class AuthenticationState extends State<Authentication> {
           _otpController.text = _verificationID;
           final result = await (_auth.signInWithCredential(authCredential));
           if (result.user != null) {
-            final user = await _initUser(result.user);
+            final user = await _initUser(result.user!);
             refreshContacts(user);
             Navigator.pushReplacement(context,
                 MaterialPageRoute(builder: (BuildContext context) {
@@ -356,7 +356,7 @@ class AuthenticationState extends State<Authentication> {
           verificationId: _verificationID, smsCode: _otpController.text);
       final result = await _auth.signInWithCredential(_authCredential);
       if (result.user != null) {
-        final user = await _initUser(result.user);
+        final user = await _initUser(result.user!);
         refreshContacts(user);
         Navigator.pushReplacement(context,
             MaterialPageRoute(builder: (BuildContext context) {

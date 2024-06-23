@@ -2,17 +2,16 @@ import 'dart:async';
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:interactive_message/conversation.dart';
-import 'package:interactive_message/photoview.dart';
-import 'package:interactive_message/read.dart';
-import 'package:interactive_message/sendMsgs.dart';
-import 'package:interactive_message/user.dart';
+import 'conversation.dart';
+import 'photoview.dart';
+import 'read.dart';
+import 'sendMsgs.dart';
+import 'user.dart';
 import 'package:loading_animations/loading_animations.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class SingleImagePreview extends StatefulWidget {
-  
   final int timeMsgCreated;
   final String userNameWhoCreated;
   final bool isGroupChat;
@@ -31,7 +30,6 @@ class SingleImagePreview extends StatefulWidget {
   final String imgUrl;
   final int twentiethMsgTimestamp;
   const SingleImagePreview(
-      
       this.user,
       this.conversationState,
       this.conversationID,
@@ -41,15 +39,15 @@ class SingleImagePreview extends StatefulWidget {
       this.isGroupChat,
       this.userNameWhoCreated,
       this.timeMsgCreated,
-      {Key key,
-      this.fileName,
-      this.imgUrl,
-      this.reply: false,
-      this.isGridView: false,
-      this.fileSize,
-      this.isEmojiKeyBoardVisble,
-      this.scrollController,
-      this.twentiethMsgTimestamp})
+      {Key? key,
+      required this.fileName,
+      required this.imgUrl,
+      this.reply = false,
+      this.isGridView = false,
+      required this.fileSize,
+      required this.isEmojiKeyBoardVisble,
+      required this.scrollController,
+      required this.twentiethMsgTimestamp})
       : super(key: key);
 
   @override
@@ -81,10 +79,10 @@ class SingleImagePreviewState extends State<SingleImagePreview> {
   final String fileName;
   final String imgUrl;
   bool _initialized = false;
-  bool _fileExists;
-  String _path;
-  bool _isSelected = false;
-  ForwardSnap _forwardSnap;
+  late bool _fileExists;
+  late String _path;
+  late bool _isSelected = false;
+  late ForwardSnap _forwardSnap;
   final _focusNode = FocusNode();
   SingleImagePreviewState(
       this.msgID,
@@ -108,7 +106,6 @@ class SingleImagePreviewState extends State<SingleImagePreview> {
   void initState() {
     super.initState();
     _forwardSnap = ForwardSnap(
-      
         msgID,
         conversationID,
         'image',
@@ -223,7 +220,10 @@ class SingleImagePreviewState extends State<SingleImagePreview> {
                                                 conversationState.scrollCount;
                                             widget.scrollController
                                                 .jumpTo(index: scrollCount);
-                                            sendText(map, user,);
+                                            sendText(
+                                              map,
+                                              user,
+                                            );
                                           },
                                           icon: Icon(Icons.send),
                                         ),
@@ -289,7 +289,7 @@ class SingleImagePreviewState extends State<SingleImagePreview> {
                         (isGridView || widget.reply)
                             ? Container()
                             : Text(
-                                '$hour:'+mins,
+                                '$hour:' + mins,
                                 style: TextStyle(fontSize: 10),
                               ),
                         (widget.isGroupChat || isGridView || widget.reply)
@@ -306,7 +306,7 @@ class SingleImagePreviewState extends State<SingleImagePreview> {
   _initialize() async {
     try {
       final dir = await getExternalStorageDirectory();
-      _path = '${dir.path}/Belinstant/' + fileName;
+      _path = '${dir!.path}/Belinstant/' + fileName;
       _fileExists = await File(_path).exists();
       if (mounted) {
         setState(() {

@@ -1,22 +1,21 @@
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:contacts_service/contacts_service.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_sms/flutter_sms.dart';
-import 'package:interactive_message/conversation.dart';
-import 'package:interactive_message/displayPictureAndName.dart';
-import 'package:interactive_message/groupChats.dart';
-import 'package:interactive_message/home.dart';
-import 'package:interactive_message/refreshcontacts.dart';
-import 'package:interactive_message/sendMsgs.dart';
-import 'package:interactive_message/updateFunctions.dart';
-import 'package:interactive_message/user.dart';
+import 'conversation.dart';
+import 'displayPictureAndName.dart';
+import 'groupChats.dart';
+import 'home.dart';
+import 'refreshcontacts.dart';
+import 'sendMsgs.dart';
+import 'updateFunctions.dart';
+import 'user.dart';
 import 'package:loading_animations/loading_animations.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 
 class Contacts extends StatefulWidget {
   final List<ForwardSnap> forwardMsgList;
@@ -35,22 +34,22 @@ class Contacts extends StatefulWidget {
   final String fileUrl;
   final int fileSize;
   const Contacts({
-    Key key,
-    this.user,
-    this.newGroupInvite: false,
-    this.groupDisplayPicture,
-    this.groupName,
-    this.newBroadCast: false,
-    this.forwardMsgList,
-    this.forward,
-    this.isGroupChat: false,
-    this.sendGroupInvite: false,
-    this.displayPictureUrl,
-    this.conversationID,
-    this.forwardSingleImage: false,
-    this.fileName,
-    this.fileUrl,
-    this.fileSize,
+    Key? key,
+    required this.user,
+    this.newGroupInvite = false,
+    required this.groupDisplayPicture,
+    required this.groupName,
+    this.newBroadCast = false,
+    required this.forwardMsgList,
+    required this.forward,
+    this.isGroupChat = false,
+    this.sendGroupInvite = false,
+    required this.displayPictureUrl,
+    required this.conversationID,
+    this.forwardSingleImage = false,
+    required this.fileName,
+    required this.fileUrl,
+    required this.fileSize,
   }) : super(key: key);
   @override
   State<StatefulWidget> createState() {
@@ -75,12 +74,12 @@ class ContactsState extends State<Contacts> {
   bool expand = true;
   final User user;
   bool refreshingContacts = false;
-  CollectionReference _dbContacts;
+  late CollectionReference _dbContacts;
   Map<String, bool> _selectionList = Map<String, bool>();
-  List<String> _contactIDList = List<String>();
+  List<String> _contactIDList = [];
   ContactsState(this.user, this.groupDisplayPicture, this.groupName,
       this.newBroadcast, this.forwardMsgList, this.forward, this.isGroupChat,
-      {this.newGroupInvite});
+      {required this.newGroupInvite});
   final bool newGroupInvite;
   final bool forward;
   final bool newBroadcast;
@@ -115,9 +114,11 @@ class ContactsState extends State<Contacts> {
               ? Container(
                   height: 5,
                 )
-              : FlatButton(
-                  color: Colors.yellow,
-                  padding: EdgeInsets.all(2),
+              : TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.yellow,
+                    padding: EdgeInsets.all(2),
+                  ),
                   child: Text('New group'),
                   onPressed: () {
                     Navigator.push(
@@ -130,9 +131,11 @@ class ContactsState extends State<Contacts> {
                                 )));
                   },
                 ),
-          FlatButton(
-            color: Colors.yellow,
-            padding: EdgeInsets.all(2),
+          TextButton(
+            style: TextButton.styleFrom(
+              backgroundColor: Colors.yellow,
+              padding: EdgeInsets.all(2),
+            ),
             child: Text('Invite'),
             onPressed: () {
               Navigator.push(context,
@@ -141,9 +144,11 @@ class ContactsState extends State<Contacts> {
               }));
             },
           ),
-          FlatButton(
-            color: Colors.yellow,
-            padding: EdgeInsets.all(2),
+          TextButton(
+            style: TextButton.styleFrom(
+              backgroundColor: Colors.yellow,
+              padding: EdgeInsets.all(2),
+            ),
             onPressed: () async {
               setState(() {
                 refreshingContacts = true;
@@ -156,9 +161,11 @@ class ContactsState extends State<Contacts> {
             child: Icon(Icons.refresh),
           ),
           newBroadcast
-              ? FlatButton(
-                  color: Colors.yellow,
-                  padding: EdgeInsets.all(3),
+              ? TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.yellow,
+                    padding: EdgeInsets.all(2),
+                  ),
                   child: Text('Groups'),
                   onPressed: () {
                     Navigator.push(
@@ -213,15 +220,15 @@ class ContactsState extends State<Contacts> {
                             if (widget.sendGroupInvite) {
                               Navigator.of(context).pushAndRemoveUntil(
                                   MaterialPageRoute(
-                                    builder: (context) => Home(
-                                      user: widget.user,
+                                    builder: (context) => HomeState(
+                                      widget.user,
                                     ),
                                   ),
                                   (Route<dynamic> route) => false);
                               for (int i = 0; i < _selectionList.length; i++) {
                                 String contactID =
                                     _selectionList.keys.elementAt(i);
-                                bool isSelected = _selectionList[contactID];
+                                bool isSelected = _selectionList[contactID]!;
                                 if (isSelected) {
                                   final contactSnapshot = await ref
                                       .collection('users')
@@ -233,7 +240,7 @@ class ContactsState extends State<Contacts> {
                                       .get();
                                   final userID = contactSnapshot.id;
                                   final regionCode =
-                                      contactSnapshot.data()['regionCode'];
+                                      contactSnapshot['regionCode'];
                                   final participantSnapshot = await ref
                                       .collection('conversations')
                                       .doc(widget.conversationID)
@@ -339,6 +346,7 @@ class ContactsState extends State<Contacts> {
                     height: 50,
                   ),
         appBar: appBar,
+        // ignore: unnecessary_null_comparison
         body: (_dbContacts != null
             ? (StreamBuilder<QuerySnapshot>(
                 stream: _dbContacts.snapshots(),
@@ -346,7 +354,7 @@ class ContactsState extends State<Contacts> {
                     AsyncSnapshot<QuerySnapshot> snapshot) {
                   if (snapshot.hasError) {
                     return Center(
-                      child: Text(snapshot.error),
+                      child: Text(snapshot.error.toString()),
                     );
                   }
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -356,10 +364,10 @@ class ContactsState extends State<Contacts> {
                   }
                   if (snapshot.hasData) {
                     return ListView.builder(
-                      itemCount: snapshot.data.docs.length,
+                      itemCount: snapshot.data!.docs.length,
                       itemBuilder: (context, index) {
-                        final contactSnapshot = snapshot.data.docs[index];
-                        if (contactSnapshot.data()['contactName'] !=
+                        final contactSnapshot = snapshot.data!.docs[index];
+                        if (contactSnapshot['contactName'] !=
                             null) //to avoid contact that is not in users contacts list to be added in database
                         {
                           return DBContactCard(
@@ -385,10 +393,10 @@ class ContactsState extends State<Contacts> {
   }
 
   Future<List<String>> _createNewBroadcast() async {
-    List<String> conversationIDs = List<String>();
+    List<String> conversationIDs = [];
     for (int i = 0; i < _selectionList.length; i++) {
       String contactID = _selectionList.keys.elementAt(i);
-      bool isSelected = _selectionList[contactID];
+      bool isSelected = _selectionList[contactID]!;
       bool isBlocked = false;
       if (isSelected) {
         final contactSnapshot = await ref
@@ -400,11 +408,12 @@ class ContactsState extends State<Contacts> {
             .doc(contactID)
             .get();
         final userID = contactSnapshot.id;
-        final profilePhotoUrl = contactSnapshot.data()['displayPictureUrl'];
-        final contactName = contactSnapshot.data()['contactName'];
-        final contactPhoneNumber = contactSnapshot.data()['phoneNumber'];
-        final regionCode = contactSnapshot.data()['regionCode'];
-        String conversationID = contactSnapshot.data()['conversationID'];
+        final profilePhotoUrl = contactSnapshot['displayPictureUrl'];
+        final contactName = contactSnapshot['contactName'];
+        final contactPhoneNumber = contactSnapshot['phoneNumber'];
+        final regionCode = contactSnapshot['regionCode'];
+        String conversationID = contactSnapshot['conversationID'];
+        // ignore: unnecessary_null_comparison
         if (conversationID == null) {
           conversationID = await _createNewConversation(
             userID,
@@ -423,7 +432,7 @@ class ContactsState extends State<Contacts> {
               .collection('conversations')
               .doc(conversationID)
               .get();
-          isBlocked = conversationSnapshot.data()['blocked'] ?? false;
+          isBlocked = conversationSnapshot['blocked'] ?? false;
         }
         if (!isBlocked) {
           conversationIDs.add(conversationID);
@@ -443,8 +452,7 @@ class ContactsState extends State<Contacts> {
       final path =
           user.userID + '/' + conversation.id + '/profilePic/' + fileName;
       final task =
-          await (storageRef.child(path).putFile(File(groupDisplayPicture)))
-              .onComplete;
+          await (storageRef.child(path).putFile(File(groupDisplayPicture)));
       mediaUrl = await task.ref.getDownloadURL();
     }
 
@@ -503,7 +511,7 @@ class ContactsState extends State<Contacts> {
 
     for (int i = 0; i < _selectionList.length; i++) {
       String contactID = _selectionList.keys.elementAt(i);
-      bool isSelected = _selectionList[contactID];
+      bool isSelected = _selectionList[contactID]!;
       if (isSelected) {
         final contactSnapshot = await ref
             .collection('users')
@@ -514,7 +522,7 @@ class ContactsState extends State<Contacts> {
             .doc(contactID)
             .get();
         final userID = contactSnapshot.id;
-        final regionCode = contactSnapshot.data()['regionCode'];
+        final regionCode = contactSnapshot['regionCode'];
         _sendGroupInvite(userID, mediaUrl, conversation.id, regionCode);
       }
     }
@@ -550,13 +558,13 @@ class DBContactCard extends StatefulWidget {
   final DocumentSnapshot contactSnapshot;
   final ContactsState contactState;
   const DBContactCard(
-      {Key key,
-      this.contactState,
-      this.contactSnapshot,
-      this.user,
-      this.newGroupInvite,
-      this.newBroadCast,
-      this.sendGroupInvite: false})
+      {Key? key,
+      required this.contactState,
+      required this.contactSnapshot,
+      required this.user,
+      required this.newGroupInvite,
+      required this.newBroadCast,
+      this.sendGroupInvite = false})
       : super(key: key);
   @override
   State<StatefulWidget> createState() {
@@ -577,14 +585,13 @@ class DBContactCardState extends State<DBContactCard> {
   @override
   Widget build(BuildContext context) {
     final isSelected = contactState._selectionList[contactSnapshot.id] ?? false;
-    final String profilePhotoUrl =
-        contactSnapshot.data()['displayPictureUrl'] ?? '';
-    final contactName = contactSnapshot.data()['contactName'] ?? '';
-    final contactPhoneNumber = contactSnapshot.data()['phoneNumber'] ?? '';
+    final String profilePhotoUrl = contactSnapshot['displayPictureUrl'] ?? '';
+    final contactName = contactSnapshot['contactName'] ?? '';
+    final contactPhoneNumber = contactSnapshot['phoneNumber'] ?? '';
     final userID = contactSnapshot.id;
-    final conversationID = contactSnapshot.data()['conversationID'];
-    final regionCode = contactSnapshot.data()['regionCode'];
-    final isBlocked = contactSnapshot.data()['blocked'] ?? false;
+    final conversationID = contactSnapshot['conversationID'];
+    final regionCode = contactSnapshot['regionCode'];
+    final isBlocked = contactSnapshot['blocked'] ?? false;
     contactState._contactIDList.add(contactSnapshot.id);
     return ListTile(
       onTap: () async {
@@ -616,7 +623,7 @@ class DBContactCardState extends State<DBContactCard> {
             setUserLive(conversationID, user);
             setUnreadCountToZero(conversationID, user);
             setMsgsRead(
-              conversationSnapshot.data()['lastReadMsgTimestamp'],
+              conversationSnapshot['lastReadMsgTimestamp'],
               conversationID,
               user,
             );
@@ -626,7 +633,7 @@ class DBContactCardState extends State<DBContactCard> {
             Navigator.push(context,
                 MaterialPageRoute(builder: (BuildContext context) {
               return Conversation(
-                conversationSnapshot.data()['lastReadMsgTimestamp'],
+                conversationSnapshot['lastReadMsgTimestamp'],
                 user: user,
                 conversationID: conversationID,
                 isGroupChat: false,
@@ -701,8 +708,8 @@ Future<String> _createNewConversation(
   final ref = FirebaseFirestore.instance;
   final conversation = ref.collection('conversations').doc();
   final userSnap = await ref.collection('userRegionCodes').doc(userID).get();
-  final regionCode = userSnap.data()['regionCode'];
-  final fcmToken = userSnap.data()['token'];
+  final regionCode = userSnap['regionCode'];
+  final fcmToken = userSnap['token'];
   ref
       .collection('conversations')
       .doc(conversation.id)
@@ -819,11 +826,11 @@ class InviteContacts extends StatefulWidget {
 
 class InviteContactsState extends State<InviteContacts> {
   bool loading = false;
-  List<Contact> _phoneContacts;
+  late List<Contact> _phoneContacts;
   Map<Contact, bool> selectionList = Map<Contact, bool>();
   Future<void> getContacts() async {
     try {
-      final Iterable<Contact> contacts = await ContactsService.getContacts();
+      final Iterable<Contact> contacts = await FlutterContacts.getContacts();
       setState(() {
         _phoneContacts = contacts.toList();
       });
@@ -852,20 +859,16 @@ class InviteContactsState extends State<InviteContacts> {
               heroTag: 'invite',
               backgroundColor: Colors.red,
               onPressed: () {
-                final recipents = List<String>();
-                final inviteMessage =
-                    'https://play.google.com/store/apps/details?id=interactive.message.belinstant';
+                final List<String> recipents = [];
                 selectionList.forEach((contact, isSelected) async {
                   if (isSelected) {
-                    contact.phones.forEach((number) {
-                      recipents.add(number.value);
-                    });
+                    for (var number in contact.phones) {
+                      recipents.add(number.number);
+                    }
                     if (recipents.isNotEmpty) {
                       setState(() {
                         loading = true;
                       });
-                      await sendSMS(
-                          message: inviteMessage, recipients: recipents);
                       setState(() {
                         loading = false;
                       });
@@ -877,12 +880,13 @@ class InviteContactsState extends State<InviteContacts> {
                   ? LoadingBumpingLine.circle(
                       backgroundColor: Colors.yellow,
                     )
-                  : Text('Invite'),
+                  : const Text('Invite'),
             )
           ],
         ),
       ),
       appBar: AppBar(),
+      // ignore: unnecessary_null_comparison
       body: _phoneContacts != null
           ? ListView.builder(
               itemCount: _phoneContacts.length,
@@ -899,13 +903,15 @@ class InviteContactsState extends State<InviteContacts> {
                       }
                     });
                   },
-                  leading: (contact.avatar != null && contact.avatar.isNotEmpty)
+                  leading: (contact.photo != null && contact.photo!.isNotEmpty)
                       ? CircleAvatar(
-                          backgroundImage: MemoryImage(contact.avatar),
+                          backgroundImage:
+                              MemoryImage(contact.photo ?? Uint8List(0)),
                         )
                       : CircleAvatar(
-                          child: Text(contact.initials()),
-                          backgroundColor: Theme.of(context).accentColor,
+                          child: Text(contact.displayName),
+                          backgroundColor:
+                              Theme.of(context).colorScheme.secondary,
                         ),
                   title: Text(contact.displayName ?? ''),
                   trailing: (isSelected)

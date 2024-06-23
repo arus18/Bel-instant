@@ -2,17 +2,16 @@ import 'dart:async';
 import 'package:bubble/bubble.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:interactive_message/audioPlayer.dart';
-import 'package:interactive_message/conversation.dart';
-import 'package:interactive_message/imagePreview.dart';
-import 'package:interactive_message/read.dart';
-import 'package:interactive_message/sendMsgs.dart';
-import 'package:interactive_message/textFullview.dart';
-import 'package:interactive_message/user.dart';
+import 'audioPlayer.dart';
+import 'conversation.dart';
+import 'imagePreview.dart';
+import 'read.dart';
+import 'sendMsgs.dart';
+import 'textFullview.dart';
+import 'user.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class Reply extends StatefulWidget {
-  
   final int timeMsgCreated;
   final String userWhoCreated;
   final bool isGroupChat;
@@ -25,19 +24,18 @@ class Reply extends StatefulWidget {
   final DocumentSnapshot msgSnapshot;
   final int twentiethMsgTimestamp;
   const Reply(
-    
     this.user,
     this.conversationState,
     this.streamcontroller,
     this.isGroupChat,
     this.userWhoCreated,
     this.timeMsgCreated, {
-    Key key,
-    this.controller,
-    this.conversationID,
-    this.msgSnapshot,
-    this.isEmojiKeyBoardVisible,
-    this.twentiethMsgTimestamp,
+    Key? key,
+    required this.controller,
+    required this.conversationID,
+    required this.msgSnapshot,
+    required this.isEmojiKeyBoardVisible,
+    required this.twentiethMsgTimestamp,
   }) : super(key: key);
   @override
   State<StatefulWidget> createState() {
@@ -51,25 +49,24 @@ class ReplyState extends State<Reply> {
   final StreamController<ForwardSnap> streamcontroller;
   final ConversationState conversationState;
   final User user;
-  Widget _repliedMessage;
+  late Widget _repliedMessage;
   final ItemScrollController controller;
   final String conversationID;
   final DocumentSnapshot msgSnapshot;
   bool _isSelected = false;
-  ForwardSnap _forwardSnap;
+  late ForwardSnap _forwardSnap;
   final _focusNode = FocusNode();
-  String userNamewhoCreatedRepliedMsg;
+  late String userNamewhoCreatedRepliedMsg;
   ReplyState(this.msgSnapshot, this.conversationID, this.controller, this.user,
       this.conversationState, this.streamcontroller);
 
   @override
   void initState() {
     _forwardSnap = ForwardSnap(
-      
         msgSnapshot.id,
         conversationID,
         'text',
-        msgSnapshot.data()['userID'],
+        msgSnapshot['userID'],
         widget.timeMsgCreated,
         widget.twentiethMsgTimestamp);
     _repliedMessageBuilder();
@@ -90,7 +87,7 @@ class ReplyState extends State<Reply> {
         if (conversationState.selectedMessages.isEmpty) {
           Navigator.push(context,
               MaterialPageRoute(builder: (BuildContext context) {
-            return TextFullView(msgSnapshot.data()['msg']);
+            return TextFullView(msgSnapshot['msg']);
           }));
         }
         final isSelected =
@@ -154,7 +151,10 @@ class ReplyState extends State<Reply> {
                               };
                               final scrollCount = conversationState.scrollCount;
                               controller.jumpTo(index: scrollCount);
-                              sendText(map, user,);
+                              sendText(
+                                map,
+                                user,
+                              );
                             },
                             icon: Icon(Icons.send),
                           ),
@@ -172,16 +172,16 @@ class ReplyState extends State<Reply> {
         color: _isSelected ? Colors.lightGreen : Colors.white,
         padding: EdgeInsets.all(3),
         child: Align(
-            alignment: (msgSnapshot.data()['userID'] == user.userID)
+            alignment: (msgSnapshot['userID'] == user.userID)
                 ? Alignment.topRight
                 : Alignment.topLeft,
             child: Column(
-              crossAxisAlignment: (user.userID == msgSnapshot.data()['userID'])
+              crossAxisAlignment: (user.userID == msgSnapshot['userID'])
                   ? CrossAxisAlignment.end
                   : CrossAxisAlignment.start,
               children: <Widget>[
                 (widget.isGroupChat &&
-                        (user.userID != msgSnapshot.data()['userID']) &&
+                        (user.userID != msgSnapshot['userID']) &&
                         userNamewhoCreatedRepliedMsg != null)
                     ? Container(
                         margin: EdgeInsets.only(bottom: 3),
@@ -193,7 +193,7 @@ class ReplyState extends State<Reply> {
                         constraints: BoxConstraints(maxWidth: width - 50),
                         child: _repliedMessage) ??
                     Container(),
-                (widget.isGroupChat && (user.userID != msgSnapshot.data()['userID']))
+                (widget.isGroupChat && (user.userID != msgSnapshot['userID']))
                     ? Container(
                         margin: EdgeInsets.only(bottom: 3),
                         child: Text(
@@ -204,23 +204,22 @@ class ReplyState extends State<Reply> {
                 Container(
                     constraints: BoxConstraints(maxWidth: width - 50),
                     child: Bubble(
-                      color: (user.userID != msgSnapshot.data()['userID'])
+                      color: (user.userID != msgSnapshot['userID'])
                           ? Colors.yellow[100]
                           : Colors.yellow,
                       child: Text(
-                        msgSnapshot.data()['msg'],
+                        msgSnapshot['msg'],
                         maxLines: 5,
                         overflow: TextOverflow.ellipsis,
                       ),
                     )),
                 Text(
-                  '$hour:'+mins,
+                  '$hour:' + mins,
                   style: TextStyle(fontSize: 10),
                 ),
                 !widget.isGroupChat
                     ? Read(
-                      
-                        userIDwhoCreatedThisMsg: msgSnapshot.data()['userID'],
+                        userIDwhoCreatedThisMsg: msgSnapshot['userID'],
                         userID: user.userID,
                         conversationID: conversationID,
                         msgID: msgSnapshot.id)
@@ -243,27 +242,27 @@ class ReplyState extends State<Reply> {
         .doc(conversationID)
         .collection('msgs');
     final repliedMsgSnapshot =
-        await msgs.doc(msgSnapshot.data()['msgIDreplied']).get();
-    String msgType = repliedMsgSnapshot.data()['msgType'];
-    final fileSize = repliedMsgSnapshot.data()['fileSize'];
-    userNamewhoCreatedRepliedMsg = repliedMsgSnapshot.data()['name'];
+        await msgs.doc(msgSnapshot['msgIDreplied']).get();
+    String msgType = repliedMsgSnapshot['msgType'];
+    final fileSize = repliedMsgSnapshot['fileSize'];
+    userNamewhoCreatedRepliedMsg = repliedMsgSnapshot['name'];
     if (msgType == 'reply') {
-      msgType = repliedMsgSnapshot.data()['typeOfReplyMsg'];
+      msgType = repliedMsgSnapshot['typeOfReplyMsg'];
     }
     if (msgType == 'text') {
       _repliedMessage = GestureDetector(
           onTap: () {
             Navigator.push(context,
                 MaterialPageRoute(builder: (BuildContext context) {
-              return TextFullView(repliedMsgSnapshot.data()['msg']);
+              return TextFullView(repliedMsgSnapshot['msg']);
             }));
           },
           child: Bubble(
-            color: (user.userID != repliedMsgSnapshot.data()['userID'])
+            color: (user.userID != repliedMsgSnapshot['userID'])
                 ? Colors.yellow[100]
                 : Colors.yellow,
             child: Text(
-              repliedMsgSnapshot.data()['msg'],
+              repliedMsgSnapshot['msg'],
               maxLines: 5,
               overflow: TextOverflow.ellipsis,
             ),
@@ -274,15 +273,14 @@ class ReplyState extends State<Reply> {
       return;
     }
     if (msgType == 'image') {
-      final url = repliedMsgSnapshot.data()['url'];
-      final fileName = repliedMsgSnapshot.data()['fileName'];
+      final url = repliedMsgSnapshot['url'];
+      final fileName = repliedMsgSnapshot['fileName'];
       _repliedMessage = SingleImagePreview(
-        
         user,
         conversationState,
         conversationID,
         repliedMsgSnapshot.id,
-        msgSnapshot.data()['userID'],
+        msgSnapshot['userID'],
         streamcontroller,
         widget.isGroupChat,
         widget.userWhoCreated,
@@ -291,6 +289,9 @@ class ReplyState extends State<Reply> {
         imgUrl: url,
         reply: true,
         fileSize: fileSize,
+        isEmojiKeyBoardVisble: ValueNotifier<bool>(false),
+        scrollController: ItemScrollController(),
+        twentiethMsgTimestamp: 0,
       );
       if (mounted) {
         setState(() {});
@@ -300,20 +301,22 @@ class ReplyState extends State<Reply> {
     }
     if (msgType == 'audio') {
       _repliedMessage = AudioPlayerForConversation(
-        
         user,
         conversationState,
         conversationID,
         repliedMsgSnapshot.id,
-        msgSnapshot.data()['userID'],
+        msgSnapshot['userID'],
         streamcontroller,
         widget.timeMsgCreated,
         widget.isGroupChat,
         widget.userWhoCreated,
-        repliedMsgSnapshot.data()['duration'],
-        url: repliedMsgSnapshot.data()['url'],
+        repliedMsgSnapshot['duration'],
+        url: repliedMsgSnapshot['url'],
         reply: true,
-        userIDwhoCreatedRepliedMsg: repliedMsgSnapshot.data()['userID'],
+        userIDwhoCreatedRepliedMsg: repliedMsgSnapshot['userID'],
+        fileSize: 0,
+        scrollController: ItemScrollController(),
+        twentiethMsgTimestamp: 0,
       );
       if (mounted) {
         setState(() {});

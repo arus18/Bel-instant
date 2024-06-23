@@ -3,9 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:interactive_message/authentication.dart';
-import 'package:interactive_message/home.dart';
-import 'package:interactive_message/user.dart' as localuser;
+import 'authentication.dart';
+import 'home.dart';
+import 'user.dart' as localuser;
 import 'package:loading_animations/loading_animations.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -19,7 +19,7 @@ class StartupScreen extends StatefulWidget {
 class StartupScreenState extends State<StartupScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   bool _loading = true;
-  localuser.User user;
+  localuser.User user = localuser.User("", "", "", "", "", "", "");
   @override
   void initState() {
     super.initState();
@@ -34,8 +34,8 @@ class StartupScreenState extends State<StartupScreen> {
           .collection('userRegionCodes')
           .doc(currentUser.uid)
           .get());
-      final token = snapshot.data()['token'];
-      final regionCode = snapshot.data()['regionCode'];
+      final token = snapshot['token'];
+      final regionCode = snapshot['regionCode'];
       _setUserOnline(currentUser, regionCode);
       final userSnapshot = await (FirebaseFirestore.instance
           .collection('users')
@@ -43,22 +43,19 @@ class StartupScreenState extends State<StartupScreen> {
           .collection('users')
           .doc(currentUser.uid)
           .get());
-      final name = userSnapshot.data()['name'];
-      final profilePictureUrl = userSnapshot.data()['displayPictureUrl'];
-      final phoneNumber = userSnapshot.data()['phoneNumber'];
-      final countryCode = userSnapshot.data()['countryCode'];
+      final name = userSnapshot['name'];
+      final profilePictureUrl = userSnapshot['displayPictureUrl'];
+      final phoneNumber = userSnapshot['phoneNumber'];
+      final countryCode = userSnapshot['countryCode'];
       user = localuser.User(name, phoneNumber, countryCode, currentUser.uid,
           regionCode, profilePictureUrl, token);
     }
   }
 
   _setUserOnline(User user, String regionCode) async {
+    FirebaseDatabase.instance.ref().child('status/${user.uid}').set('online');
     FirebaseDatabase.instance
-        .reference()
-        .child('status/${user.uid}')
-        .set('online');
-    FirebaseDatabase.instance
-        .reference()
+        .ref()
         .child('status/${user.uid}')
         .onDisconnect()
         .set('offline');
@@ -216,9 +213,9 @@ class StartupScreenState extends State<StartupScreen> {
     await _initUser();
     Navigator.pushReplacement(context,
         MaterialPageRoute(builder: (BuildContext context) {
-      if (user != null) {
-        return Home(
-          user: user,
+      if (user.userName.isNotEmpty) {
+        return HomeState(
+          user,
         );
       }
       return Authentication();
@@ -287,5 +284,3 @@ class BelInstant extends StatelessWidget {
         ]));
   }
 }
-
-

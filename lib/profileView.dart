@@ -6,13 +6,13 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:interactive_message/updateFunctions.dart';
-import 'package:interactive_message/user.dart';
+import 'updateFunctions.dart';
+import 'user.dart';
 import 'package:loading_animations/loading_animations.dart';
 
 class ProfileView extends StatefulWidget {
   final User user;
-  const ProfileView({Key key, this.user}) : super(key: key);
+  const ProfileView({Key? key, required this.user}) : super(key: key);
   @override
   State<StatefulWidget> createState() {
     return ProfileViewState(user);
@@ -21,7 +21,7 @@ class ProfileView extends StatefulWidget {
 
 class ProfileViewState extends State<ProfileView> {
   final User user;
-  String _imagePath;
+  late String _imagePath = "";
   bool _uploading = false;
   bool _editName = false;
   bool _editNameInProgress = false;
@@ -52,7 +52,7 @@ class ProfileViewState extends State<ProfileView> {
                       ? Container()
                       : SizedBox(
                           height: height / 2,
-                          child: (_imagePath == null)
+                          child: (_imagePath.isNotEmpty)
                               ? user.profilePhotUrl.isEmpty
                                   ? Container()
                                   : CachedNetworkImage(
@@ -67,40 +67,35 @@ class ProfileViewState extends State<ProfileView> {
                         onPressed: () async {
                           FilePickerResult result;
                           try {
-                            result = await FilePicker.platform.pickFiles(
+                            result = (await FilePicker.platform.pickFiles(
                               type: FileType.image,
-                            );
+                            ))!;
+                            _imagePath = result.files.single.path!;
                           } catch (e) {}
-                          if (result != null) {
-                            _imagePath = result.files.single.path;
-                            setState(() {
-                              _uploading = true;
-                            });
-                            final ref = FirebaseStorage.instance.ref();
-                            final fileName = DateTime.now()
-                                    .millisecondsSinceEpoch
-                                    .toString() +
-                                'profilePic';
-                            final path =
-                                user.userID + '/profilePic/' + fileName;
-                            final task = await (ref
-                                    .child(path)
-                                    .putFile(File(_imagePath)))
-                                .onComplete;
-                            final mediaUrl = await task.ref.getDownloadURL();
-                            FirebaseFirestore.instance
-                                .collection('users')
-                                .doc(user.regionCode)
-                                .collection('users')
-                                .doc('${user.userID}')
-                                .set({'displayPictureUrl': mediaUrl},
-                                    SetOptions(merge: true));
-                            user.profilePhotUrl = mediaUrl;
-                            updateAllDisplayPictureAppearences(user, mediaUrl);
-                            setState(() {
-                              _uploading = false;
-                            });
-                          }
+
+                          setState(() {
+                            _uploading = true;
+                          });
+                          final ref = FirebaseStorage.instance.ref();
+                          final fileName =
+                              DateTime.now().millisecondsSinceEpoch.toString() +
+                                  'profilePic';
+                          final path = user.userID + '/profilePic/' + fileName;
+                          final task =
+                              await (ref.child(path).putFile(File(_imagePath)));
+                          final mediaUrl = await task.ref.getDownloadURL();
+                          FirebaseFirestore.instance
+                              .collection('users')
+                              .doc(user.regionCode)
+                              .collection('users')
+                              .doc('${user.userID}')
+                              .set({'displayPictureUrl': mediaUrl},
+                                  SetOptions(merge: true));
+                          user.profilePhotUrl = mediaUrl;
+                          updateAllDisplayPictureAppearences(user, mediaUrl);
+                          setState(() {
+                            _uploading = false;
+                          });
                         },
                         icon: Icon(Icons.photo),
                       ),
@@ -109,39 +104,33 @@ class ProfileViewState extends State<ProfileView> {
                           final picker = ImagePicker();
                           PickedFile result;
                           try {
-                            result = await picker.getImage(
-                                source: ImageSource.camera);
-                          } catch (e) {}
-                          if (result != null) {
+                            result = (await picker.pickImage(
+                                source: ImageSource.camera))! as PickedFile;
                             _imagePath = result.path;
-                            setState(() {
-                              _uploading = true;
-                            });
-                            final ref = FirebaseStorage.instance.ref();
-                            final fileName = DateTime.now()
-                                    .millisecondsSinceEpoch
-                                    .toString() +
-                                'profilePic';
-                            final path =
-                                user.userID + '/profilePic/' + fileName;
-                            final task = await (ref
-                                    .child(path)
-                                    .putFile(File(_imagePath)))
-                                .onComplete;
-                            final mediaUrl = await task.ref.getDownloadURL();
-                            FirebaseFirestore.instance
-                                .collection('users')
-                                .doc(user.regionCode)
-                                .collection('users')
-                                .doc('${user.userID}')
-                                .set({'displayPictureUrl': mediaUrl},
-                                    SetOptions(merge: true));
-                            user.profilePhotUrl = mediaUrl;
-                            updateAllDisplayPictureAppearences(user, mediaUrl);
-                            setState(() {
-                              _uploading = false;
-                            });
-                          }
+                          } catch (e) {}
+                          setState(() {
+                            _uploading = true;
+                          });
+                          final ref = FirebaseStorage.instance.ref();
+                          final fileName =
+                              DateTime.now().millisecondsSinceEpoch.toString() +
+                                  'profilePic';
+                          final path = user.userID + '/profilePic/' + fileName;
+                          final task =
+                              await (ref.child(path).putFile(File(_imagePath)));
+                          final mediaUrl = await task.ref.getDownloadURL();
+                          FirebaseFirestore.instance
+                              .collection('users')
+                              .doc(user.regionCode)
+                              .collection('users')
+                              .doc('${user.userID}')
+                              .set({'displayPictureUrl': mediaUrl},
+                                  SetOptions(merge: true));
+                          user.profilePhotUrl = mediaUrl;
+                          updateAllDisplayPictureAppearences(user, mediaUrl);
+                          setState(() {
+                            _uploading = false;
+                          });
                         },
                         icon: Icon(Icons.camera),
                       )

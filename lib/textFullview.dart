@@ -5,7 +5,7 @@ class TextFullView extends StatelessWidget {
   final String msg;
   const TextFullView(
     this.msg, {
-    Key key,
+    Key? key,
   }) : super(key: key);
   @override
   Widget build(BuildContext context) {

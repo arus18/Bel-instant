@@ -3,20 +3,19 @@ import 'dart:io' as io;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_audio_recorder/flutter_audio_recorder.dart';
+import 'package:flutter_audio_recorder2/flutter_audio_recorder2.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:interactive_message/audioPlayer.dart';
-import 'package:interactive_message/compose_message.dart';
-import 'package:interactive_message/conversation.dart';
-import 'package:interactive_message/sendMsgs.dart';
-import 'package:interactive_message/user.dart';
+import 'audioPlayer.dart';
+import 'compose_message.dart';
+import 'conversation.dart';
+import 'sendMsgs.dart';
+import 'user.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:path/path.dart';
 
 class TextInput extends StatefulWidget {
-  
   final ValueNotifier<bool> newUploadAdded;
   final ValueNotifier<bool> isEmojiKeyBoardVisible;
   final ItemScrollController scrollController;
@@ -28,18 +27,17 @@ class TextInput extends StatefulWidget {
   final User user;
   final bool isGroupChat;
   const TextInput(
-    
     this.user,
     this.conversationState, {
-    Key key,
-    this.context,
-    this.conversationID,
-    this.reply: false,
-    this.msgIDreplied,
-    this.isGroupChat,
-    this.scrollController,
-    this.isEmojiKeyBoardVisible,
-    this.newUploadAdded,
+    Key? key,
+    required this.context,
+    required this.conversationID,
+    this.reply = false,
+    required this.msgIDreplied,
+    required this.isGroupChat,
+    required this.scrollController,
+    required this.isEmojiKeyBoardVisible,
+    required this.newUploadAdded,
   }) : super(key: key);
   @override
   State<StatefulWidget> createState() {
@@ -49,7 +47,7 @@ class TextInput extends StatefulWidget {
 }
 
 class TextInputState extends State<TextInput> {
-  String _fileName;
+  late String _fileName;
   final ConversationState conversationState;
   final User user;
   final String msgIDreplied;
@@ -58,14 +56,15 @@ class TextInputState extends State<TextInput> {
   final BuildContext contxt;
   final msgController = TextEditingController();
   final bool isGroupChat;
-  FlutterAudioRecorder _recorder;
-  Recording _result;
+  late FlutterAudioRecorder2 _recorder;
+  late Recording _result;
   bool _isRecorderinitialized = false;
   bool _isRecordingStarted = false;
   bool _isRecordingComplete = false;
   Color _recordBtnColor = Colors.yellow;
   int _seconds = 1;
   final _focusNode = FocusNode();
+  late KeyboardVisibilityController _keyboardVisibilityController;
 
   TextInputState(
     this.contxt,
@@ -80,7 +79,8 @@ class TextInputState extends State<TextInput> {
   void initState() {
     super.initState();
     _init();
-    KeyboardVisibility.onChange.listen((bool visible) {
+    _keyboardVisibilityController = KeyboardVisibilityController();
+    _keyboardVisibilityController.onChange.listen((bool visible) {
       final scrollCount = conversationState.scrollCount;
       final controller = widget.scrollController;
       try {
@@ -103,8 +103,8 @@ class TextInputState extends State<TextInput> {
             children: <Widget>[
               Expanded(
                   child: AudioPlayerForPreview(
-                _result.duration.inMilliseconds,
-                url: _result.path,
+                _result.duration!.inMilliseconds,
+                url: _result.path.toString(),
               )),
               Container(
                   margin: EdgeInsets.only(left: 5, right: 5),
@@ -131,8 +131,12 @@ class TextInputState extends State<TextInput> {
                         'files': {_fileName + '.wav': _result.path},
                         'conversationState': conversationState,
                       };
-                      sendAudio(map, widget.newUploadAdded, user,
-                          _result.duration.inMilliseconds,);
+                      sendAudio(
+                        map,
+                        widget.newUploadAdded,
+                        user,
+                        _result.duration!.inMilliseconds,
+                      );
                       setState(() {
                         _isRecordingComplete = false;
                         _seconds = 0;
@@ -148,14 +152,12 @@ class TextInputState extends State<TextInput> {
                   Map<String, String> files = Map<String, String>();
                   FilePickerResult result;
                   try {
-                    result = await FilePicker.platform
-                        .pickFiles(type: FileType.image, allowMultiple: true);
-                  } catch (e) {}
-                  if (result != null) {
+                    result = (await FilePicker.platform
+                        .pickFiles(type: FileType.image, allowMultiple: true))!;
                     result.files.forEach((file) {
-                      files[file.name] = file.path;
+                      files[file.name] = file.path!;
                     });
-                  }
+                  } catch (e) {}
 
                   if (files != null) {
                     Map<String, dynamic> map = {
@@ -180,24 +182,23 @@ class TextInputState extends State<TextInput> {
                 final picker = ImagePicker();
                 PickedFile result;
                 try {
-                  result = await picker.getImage(source: ImageSource.camera);
-                } catch (e) {}
-                if (result != null) {
-                  final fileName = basename(result.path);
+                  result = (await picker.pickImage(source: ImageSource.camera))!
+                      as PickedFile;
+                  final fileName = basename(result.path.toString());
                   files[fileName] = result.path;
-                }
-                if (files != null) {
-                  Map<String, dynamic> map = {
-                    'conversationID': conversationID,
-                    'files': files,
-                    'conversationState': conversationState,
-                  };
-                  sendImage(
-                    map,
-                    widget.newUploadAdded,
-                    user,
-                  );
-                }
+                  if (files != null) {
+                    Map<String, dynamic> map = {
+                      'conversationID': conversationID,
+                      'files': files,
+                      'conversationState': conversationState,
+                    };
+                    sendImage(
+                      map,
+                      widget.newUploadAdded,
+                      user,
+                    );
+                  }
+                } catch (e) {}
               },
             ),
             IconButton(
@@ -210,6 +211,7 @@ class TextInputState extends State<TextInput> {
                       message: msg,
                       conversationID: conversationID,
                       user: user,
+                      key: Key(""),
                     );
                   }));
                   msgController.clear();
@@ -249,7 +251,10 @@ class TextInputState extends State<TextInput> {
                                 widget.scrollController
                                     .jumpTo(index: scrollCount);
                               } catch (e) {}
-                              sendText(map, user,);
+                              sendText(
+                                map,
+                                user,
+                              );
                               msgController.clear();
                             },
                             icon: Icon(Icons.send),
@@ -296,7 +301,7 @@ class TextInputState extends State<TextInput> {
                             .collection('participants')
                             .doc(user.userID)
                             .update({'status': 'live'});
-                        _result = await _recorder.stop();
+                        _result = (await _recorder.stop())!;
                         setState(() {
                           _isRecordingStarted = false;
                           _recordBtnColor = Colors.yellow;
@@ -320,22 +325,20 @@ class TextInputState extends State<TextInput> {
 
   _init() async {
     try {
-      if (await FlutterAudioRecorder.hasPermissions) {
-        String customPath = '/Belinstant';
-        io.Directory appDocDirectory;
+      String customPath = '/Belinstant';
+      io.Directory appDocDirectory;
 
-        appDocDirectory = await getExternalStorageDirectory();
-        _fileName = DateTime.now().millisecondsSinceEpoch.toString();
-        customPath = appDocDirectory.path + customPath + _fileName;
+      appDocDirectory = (await getExternalStorageDirectory())!;
+      _fileName = DateTime.now().millisecondsSinceEpoch.toString();
+      customPath = appDocDirectory.path + customPath + _fileName;
 
-        _recorder =
-            FlutterAudioRecorder(customPath, audioFormat: AudioFormat.WAV);
+      _recorder =
+          FlutterAudioRecorder2(customPath, audioFormat: AudioFormat.WAV);
 
-        await _recorder.initialized;
-        setState(() {
-          _isRecorderinitialized = true;
-        });
-      } else {}
+      await _recorder.initialized;
+      setState(() {
+        _isRecorderinitialized = true;
+      });
     } catch (e) {}
   }
 
@@ -349,7 +352,7 @@ class TextInputState extends State<TextInput> {
           _seconds += 50;
         });
         if (_seconds > 300000) {
-          _result = await _recorder.stop();
+          _result = (await _recorder.stop())!;
           setState(() {
             _isRecordingStarted = false;
             _recordBtnColor = Colors.yellow;

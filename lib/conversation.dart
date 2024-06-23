@@ -8,19 +8,19 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:interactive_message/audioPlayer.dart';
-import 'package:interactive_message/contacts.dart';
-import 'package:interactive_message/conversationDetails.dart';
-import 'package:interactive_message/imagePreview.dart';
-import 'package:interactive_message/photoview.dart';
-import 'package:interactive_message/read.dart';
-import 'package:interactive_message/readByList.dart';
-import 'package:interactive_message/reply.dart';
-import 'package:interactive_message/textMsg.dart';
-import 'package:interactive_message/textinput.dart';
-import 'package:interactive_message/updateFunctions.dart';
-import 'package:interactive_message/user.dart';
-import 'package:interactive_message/colors.dart';
+import 'audioPlayer.dart';
+import 'contacts.dart';
+import 'conversationDetails.dart';
+import 'imagePreview.dart';
+import 'photoview.dart';
+import 'read.dart';
+import 'readByList.dart';
+import 'reply.dart';
+import 'textMsg.dart';
+import 'textinput.dart';
+import 'updateFunctions.dart';
+import 'user.dart';
+import 'colors.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:dart_date/dart_date.dart';
 
@@ -50,11 +50,11 @@ class ForwardMessageButton extends StatefulWidget {
   final Stream<ForwardSnap> stream;
   const ForwardMessageButton(
     this.isBlocked, {
-    Key key,
-    this.stream,
-    this.user,
-    this.conversationState,
-    this.isGroupChat,
+    Key? key,
+    required this.stream,
+    required this.user,
+    required this.conversationState,
+    required this.isGroupChat,
   }) : super(key: key);
   @override
   State<StatefulWidget> createState() {
@@ -68,7 +68,7 @@ class ForwardMessageButtonState extends State<ForwardMessageButton> {
   final ConversationState conversationState;
   final User user;
   final Stream<ForwardSnap> stream;
-  final List<ForwardSnap> deletedMsgsTempList = List<ForwardSnap>();
+  final List<ForwardSnap> deletedMsgsTempList = [];
   ForwardMessageButtonState(
       this.stream, this.user, this.conversationState, this.isGroupChat);
   @override
@@ -122,6 +122,13 @@ class ForwardMessageButtonState extends State<ForwardMessageButton> {
                         newBroadCast: true,
                         forwardMsgList: msgsToForward,
                         forward: true,
+                        conversationID: '',
+                        displayPictureUrl: '',
+                        fileName: '',
+                        fileSize: 0,
+                        fileUrl: '',
+                        groupDisplayPicture: '',
+                        groupName: '',
                       );
                     }));
                   },
@@ -177,15 +184,15 @@ class Conversation extends StatefulWidget {
   final bool isBlocked;
   const Conversation(
     this.lastReadMsgTimestamp, {
-    Key key,
-    this.user,
-    this.isGroupChat,
-    this.conversationID,
-    this.isBlocked,
-    this.conversationWith,
-    this.displayPictureUrl,
-    this.phoneNumber,
-    this.userIDconversationWith,
+    Key? key,
+    required this.user,
+    required this.isGroupChat,
+    required this.conversationID,
+    required this.isBlocked,
+    required this.conversationWith,
+    required this.displayPictureUrl,
+    required this.phoneNumber,
+    required this.userIDconversationWith,
   }) : super(key: key);
   @override
   State<StatefulWidget> createState() {
@@ -206,25 +213,25 @@ class Conversation extends StatefulWidget {
 class ConversationState extends State<Conversation>
     with WidgetsBindingObserver {
   int _visibleMaxIndex = 1;
-  int minIndex;
+  late int minIndex;
   int scrollCount = 0;
   int lastReadMsgTimestamp;
   bool hasMsgs = true;
   final _streamController = StreamController<ForwardSnap>();
-  List<StreamBuilder> _uploadTasks = List<StreamBuilder>();
+  List<StreamBuilder> _uploadTasks = [];
   ValueNotifier<bool> _isEmojiKeyboardVisible = ValueNotifier(false);
   ValueNotifier<bool> _newUploadAdded = ValueNotifier(false);
   final String userIDconversationWith;
   final String conversationWith;
   final String displayPictureUrl;
   final String phoneNumber;
-  String msgID;
+  late String msgID;
   final User user;
   final bool isGroupChat;
   final String conversationID;
-  CollectionReference _participants;
-  CollectionReference _conversations;
-  List<StorageUploadTask> uploadProgress = List<StorageUploadTask>();
+  late CollectionReference _participants;
+  late CollectionReference _conversations;
+  List<UploadTask> uploadProgress = [];
   Map<ForwardSnap, bool> selectedMessages = Map<ForwardSnap, bool>();
   final ItemScrollController _controller = ItemScrollController();
   final ItemPositionsListener _positionsListener =
@@ -319,6 +326,7 @@ class ConversationState extends State<Conversation>
   }
 
   Widget _userStatus() {
+    // ignore: unnecessary_null_comparison
     if (_participants != null) {
       return StreamBuilder(
         stream: _participants.snapshots(),
@@ -330,32 +338,33 @@ class ConversationState extends State<Conversation>
             return Container();
           }
           if (snapshot.hasData) {
-            final participants = snapshot.data.docs;
+            final participants = snapshot.data!.docs;
             String userStatus = '';
             if (isGroupChat) {
-              final participant = participants.firstWhere((snap) {
-                return (snap.id != user.userID &&
-                    snap.data()['status'] == 'typing');
-              }, orElse: () {
-                return null;
-              });
+              final participant = participants.firstWhere(
+                (snap) {
+                  return (snap.id != user.userID && snap['status'] == 'typing');
+                },
+              );
+              // ignore: unnecessary_null_comparison
               if (participant != null) {
-                userStatus = '${participant.data()['name']} is ' +
-                    participant.data()['status'];
+                userStatus =
+                    '${participant['name']} is ' + participant['status'];
               }
             } else {
-              final participant = participants.firstWhere((snap) {
-                return snap.id != user.userID;
-              }, orElse: () {
-                return null;
-              });
+              final participant = participants.firstWhere(
+                (snap) {
+                  return snap.id != user.userID;
+                },
+              );
+              // ignore: unnecessary_null_comparison
               if (participant != null) {
-                String status = participant.data()['status'] ?? '';
+                String status = participant['status'] ?? '';
                 if (status == 'online' || status == 'live') {
                   userStatus = 'online';
                 }
                 if (status == 'offline') {
-                  final lastseen = participant.data()['lastseen'];
+                  final lastseen = participant['lastseen'];
                   if (lastseen != null) {
                     userStatus = 'last seen ' + _timeStatus(lastseen);
                   }
@@ -462,7 +471,7 @@ class ConversationState extends State<Conversation>
                       if (snapshot.docs.isNotEmpty) {
                         setState(() {
                           final msg = snapshot.docs.last;
-                          lastReadMsgTimestamp = msg.data()['timestamp'];
+                          lastReadMsgTimestamp = msg['timestamp'];
                           initialScrollIndex = snapshot.docs.length;
                           _visibleMaxIndex += snapshot.docs.length;
                         });
@@ -505,16 +514,16 @@ class ConversationState extends State<Conversation>
                     builder: (context, isNewUploadAdded, child) {
                       if (isNewUploadAdded) {
                         final task = uploadProgress.last;
-                        final stream = StreamBuilder<StorageTaskEvent>(
-                          stream: task.events,
+                        final stream = StreamBuilder<TaskSnapshot>(
+                          stream: task.snapshotEvents,
                           builder: (_, snapshot) {
-                            var event = snapshot?.data?.snapshot;
+                            var event = snapshot.data;
                             double progressPercent = event != null
                                 ? (event.bytesTransferred /
-                                        event.totalByteCount) *
+                                        event.bytesTransferred) *
                                     100
                                 : 0;
-                            if (task.isInProgress) {
+                            if (task.snapshotEvents.isBroadcast) {
                               return Text(
                                 '$progressPercent%',
                               );
@@ -567,7 +576,7 @@ class ConversationState extends State<Conversation>
                     AsyncSnapshot<QuerySnapshot> snapshot) {
                   if (snapshot.hasError) {
                     return Center(
-                      child: Text(snapshot.error),
+                      child: Text(snapshot.error.toString()),
                     );
                   } else if (snapshot.connectionState ==
                       ConnectionState.waiting) {
@@ -576,40 +585,37 @@ class ConversationState extends State<Conversation>
                     );
                   } else {
                     if (snapshot.hasData) {
-                      scrollCount = snapshot.data.docs.length;
+                      scrollCount = snapshot.data!.docs.length;
                       return ScrollablePositionedList.builder(
                         initialScrollIndex: (initialScrollIndex > scrollCount)
                             ? 0
                             : initialScrollIndex,
                         itemScrollController: _controller,
                         itemPositionsListener: _positionsListener,
-                        itemCount: snapshot.data.docs.length,
+                        itemCount: snapshot.data!.docs.length,
                         itemBuilder: (context, index) {
                           index = (index < 0) ? 0 : index;
-                          final msgSnapShot = snapshot.data.docs[index];
-                          final msgType = msgSnapShot.data()['msgType'];
-                          final isCustom =
-                              msgSnapShot.data()['isCustom'] ?? false;
-                          final userIDwhoCreatedMsg =
-                              msgSnapShot.data()['userID'];
-                          final fileSize = msgSnapShot.data()['fileSize'];
-                          final userNameWhoCreated = msgSnapShot.data()['name'];
-                          final timeMsgCreated =
-                              msgSnapShot.data()['timestamp'];
+                          final msgSnapShot = snapshot.data!.docs[index];
+                          final msgType = msgSnapShot['msgType'];
+                          final isCustom = msgSnapShot['isCustom'] ?? false;
+                          final userIDwhoCreatedMsg = msgSnapShot['userID'];
+                          final fileSize = msgSnapShot['fileSize'];
+                          final userNameWhoCreated = msgSnapShot['name'];
+                          final timeMsgCreated = msgSnapShot['timestamp'];
                           final int twentiethMsgTimestamp =
-                              msgSnapShot.data()['twentiethMsgTimestamp'];
+                              msgSnapShot['twentiethMsgTimestamp'];
                           if (msgType == 'updateInfo' ||
                               msgType == 'dateInfo') {
-                            final userID = msgSnapShot.data()['userID'];
+                            final userID = msgSnapShot['userID'];
 
                             if (userID != null) {
                               String info = '';
                               if (userID == user.userID) {
                                 info =
-                                    'You ${msgSnapShot.data()['info']} $conversationWith';
+                                    'You ${msgSnapShot['info']} $conversationWith';
                               } else {
                                 info =
-                                    '$conversationWith ${msgSnapShot.data()['info']} you';
+                                    '$conversationWith ${msgSnapShot['info']} you';
                               }
                               return Bubble(
                                 margin: BubbleEdges.all(3),
@@ -624,7 +630,7 @@ class ConversationState extends State<Conversation>
                               padding: BubbleEdges.all(4),
                               alignment: Alignment.center,
                               color: Colors.yellow,
-                              child: Text(msgSnapShot.data()['info']),
+                              child: Text(msgSnapShot['info']),
                             );
                           }
                           if (msgType == 'deleted') {
@@ -652,21 +658,23 @@ class ConversationState extends State<Conversation>
                               conversationID: conversationID,
                               msgSnapshot: msgSnapShot,
                               twentiethMsgTimestamp: twentiethMsgTimestamp,
+                              isEmojiKeyBoardVisible:
+                                  ValueNotifier<bool>(false),
                             );
                           }
                           if (msgType == 'text') {
                             if (isCustom) {
                               final bgColor = ColorsUtility.getColorForString(
-                                  msgSnapShot.data()['bgColor'],
-                                  msgSnapShot.data()['bgColorID']);
-                              final fontStyle = msgSnapShot.data()['fontStyle'];
+                                  msgSnapShot['bgColor'],
+                                  msgSnapShot['bgColorID']);
+                              final fontStyle = msgSnapShot['fontStyle'];
                               final fontColor = ColorsUtility.getColorForString(
-                                  msgSnapShot.data()['fontColor'],
-                                  msgSnapShot.data()['fontColorID']);
-                              final fontSize = msgSnapShot.data()['fontSize'];
-                              final message = msgSnapShot.data()['msg'];
+                                  msgSnapShot['fontColor'],
+                                  msgSnapShot['fontColorID']);
+                              final fontSize = msgSnapShot['fontSize'];
+                              final message = msgSnapShot['msg'];
                               final String bgImageUrl =
-                                  msgSnapShot.data()['bgImageUrl'];
+                                  msgSnapShot['bgImageUrl'];
                               return TextMsg(
                                 user,
                                 this,
@@ -677,13 +685,12 @@ class ConversationState extends State<Conversation>
                                 isGroupChat,
                                 userNameWhoCreated,
                                 timeMsgCreated,
-                                bgColor: bgColor,
+                                bgColor: bgColor ?? Colors.black,
                                 fontStyle: fontStyle,
-                                fontColor: fontColor,
+                                fontColor: fontColor ?? Colors.black,
                                 fontSize: fontSize,
                                 message: message,
-                                bgImageUrl:
-                                    bgImageUrl.isNotEmpty ? bgImageUrl : null,
+                                bgImageUrl: bgImageUrl,
                                 isCustom: true,
                                 scrollController: _controller,
                                 isEmojiKeyBoardVisible: _isEmojiKeyboardVisible,
@@ -700,19 +707,24 @@ class ConversationState extends State<Conversation>
                               isGroupChat,
                               userNameWhoCreated,
                               timeMsgCreated,
-                              message: msgSnapShot.data()['msg'],
+                              message: msgSnapShot['msg'],
                               isCustom: false,
-                              bgImageUrl: null,
+                              bgImageUrl: "",
                               scrollController: _controller,
                               isEmojiKeyBoardVisible: _isEmojiKeyboardVisible,
                               twentiethMsgTimestamp: twentiethMsgTimestamp,
+                              bgColor: Colors.black,
+                              fontColor: Colors.cyan,
+                              fontSize: 0,
+                              fontStyle: '',
                             );
                           }
                           final Map<String, dynamic> urlList =
-                              msgSnapShot.data()['urls'];
+                              msgSnapShot['urls'];
 
+                          // ignore: unnecessary_null_comparison
                           if (urlList != null && urlList.length >= 4) {
-                            final fileSizeMap = msgSnapShot.data()['fileSize'];
+                            final fileSizeMap = msgSnapShot['fileSize'];
                             return ImageGridView(
                               urlList: urlList,
                               msgID: msgSnapShot.id,
@@ -730,8 +742,8 @@ class ConversationState extends State<Conversation>
                             );
                           }
                           if (msgType == 'image') {
-                            final url = msgSnapShot.data()['url'];
-                            final fileName = msgSnapShot.data()['fileName'];
+                            final url = msgSnapShot['url'];
+                            final fileName = msgSnapShot['fileName'];
                             return Row(
                               mainAxisAlignment: MainAxisAlignment.start,
                               children: <Widget>[
@@ -758,7 +770,7 @@ class ConversationState extends State<Conversation>
                           }
 
                           if (msgType == 'audio') {
-                            final duration = msgSnapShot.data()['duration'];
+                            final duration = msgSnapShot['duration'];
                             return AudioPlayerForConversation(
                               user,
                               this,
@@ -770,10 +782,11 @@ class ConversationState extends State<Conversation>
                               isGroupChat,
                               userNameWhoCreated,
                               duration,
-                              url: msgSnapShot.data()['url'],
+                              url: msgSnapShot['url'],
                               fileSize: fileSize,
                               scrollController: _controller,
                               twentiethMsgTimestamp: twentiethMsgTimestamp,
+                              userIDwhoCreatedRepliedMsg: '',
                             );
                           }
                           return Container();
@@ -789,7 +802,7 @@ class ConversationState extends State<Conversation>
                 builder: (BuildContext context,
                     AsyncSnapshot<DocumentSnapshot> snapshot) {
                   if (snapshot.hasData) {
-                    final _isBlocked = snapshot.data.data()['blocked'] ?? false;
+                    final _isBlocked = snapshot.data!['blocked'] ?? false;
                     return _isBlocked
                         ? Container(
                             child: Text("You're blocked"),
@@ -803,6 +816,7 @@ class ConversationState extends State<Conversation>
                             isEmojiKeyBoardVisible: _isEmojiKeyboardVisible,
                             scrollController: _controller,
                             newUploadAdded: _newUploadAdded,
+                            msgIDreplied: '',
                           );
                   }
                   return Container();
@@ -847,6 +861,8 @@ class ConversationState extends State<Conversation>
   }
 }
 
+mixin totalByteCount {}
+
 class ImageGridView extends StatefulWidget {
   final Map<String, dynamic> urlList;
   final String msgID;
@@ -862,20 +878,20 @@ class ImageGridView extends StatefulWidget {
   final StreamController<ForwardSnap> streamController;
   final int twentiethMsgTimestamp;
   const ImageGridView(
-      {Key key,
-      this.urlList,
-      this.msgID,
-      this.userIDwhoCreatedMsg,
-      this.fileSizeMap,
-      this.userNameWhoCreated,
-      this.timeMsgCreated,
-      this.user,
-      this.conversationState,
-      this.conversationID,
-      this.isGroupChat,
-      this.scrollController,
-      this.streamController,
-      this.twentiethMsgTimestamp})
+      {Key? key,
+      required this.urlList,
+      required this.msgID,
+      required this.userIDwhoCreatedMsg,
+      required this.fileSizeMap,
+      required this.userNameWhoCreated,
+      required this.timeMsgCreated,
+      required this.user,
+      required this.conversationState,
+      required this.conversationID,
+      required this.isGroupChat,
+      required this.scrollController,
+      required this.streamController,
+      required this.twentiethMsgTimestamp})
       : super(key: key);
   @override
   State<StatefulWidget> createState() {
@@ -884,7 +900,7 @@ class ImageGridView extends StatefulWidget {
 }
 
 class ImageGridViewState extends State<ImageGridView> {
-  ForwardSnap _forwardSnap;
+  late ForwardSnap _forwardSnap;
   bool _isSelected = false;
   @override
   void initState() {
@@ -1001,7 +1017,7 @@ class ImageGridViewState extends State<ImageGridView> {
                                         widget.conversationID,
                                         widget.msgID,
                                         '',
-                                        null,
+                                        StreamController<ForwardSnap>(),
                                         widget.isGroupChat,
                                         widget.userNameWhoCreated,
                                         widget.timeMsgCreated,
@@ -1011,6 +1027,9 @@ class ImageGridViewState extends State<ImageGridView> {
                                         fileSize: widget.fileSizeMap[fileName],
                                         scrollController:
                                             widget.scrollController,
+                                        isEmojiKeyBoardVisble:
+                                            ValueNotifier<bool>(false),
+                                        twentiethMsgTimestamp: 0,
                                       );
                                     },
                                   ),

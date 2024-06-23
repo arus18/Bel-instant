@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:interactive_message/user.dart';
+import 'user.dart';
 
 setMsgsRead(
   int lastReadMsgTimestamp,
@@ -73,7 +73,7 @@ setlastReadMsgTimestamp(String conversationID, User user) async {
       .get();
   if (lastsnapshot.docs.isNotEmpty) {
     final msgSnapShot = lastsnapshot.docs.last;
-    final lastReadMsgTimestamp = msgSnapShot.data()['timestamp'];
+    final lastReadMsgTimestamp = msgSnapShot['timestamp'];
     final snapshot = await FirebaseFirestore.instance
         .collection('conversations')
         .doc(conversationID)
@@ -83,7 +83,7 @@ setlastReadMsgTimestamp(String conversationID, User user) async {
         .limit(10)
         .get();
     if (snapshot.docs.isNotEmpty) {
-      final timestamp = snapshot.docs.last.data()['timestamp'];
+      final timestamp = snapshot.docs.last['timestamp'];
       if (timestamp != lastReadMsgTimestamp) {
         FirebaseFirestore.instance
             .collection('users')
@@ -134,7 +134,7 @@ updateAllNameAppearences(User user, String name) async {
   contacts.docs.forEach((contact) async {
     ref
         .collection('users')
-        .doc(contact.data()['regionCode'])
+        .doc(contact['regionCode'])
         .collection('users')
         .doc(contact.id)
         .collection('contacts')
@@ -142,21 +142,21 @@ updateAllNameAppearences(User user, String name) async {
         .set({'contactName': name}, SetOptions(merge: true));
     final contactSnapshot = await (ref
         .collection('users')
-        .doc(contact.data()['regionCode'])
+        .doc(contact['regionCode'])
         .collection('users')
         .doc(contact.id)
         .collection('contacts')
         .doc(user.userID)
         .get());
-    final conversationID = contactSnapshot.data()['conversationID'];
+    final conversationID = contactSnapshot['conversationID'];
     if (conversationID != null) {
       ref
           .collection('users')
-          .doc(contact.data()['regionCode'])
+          .doc(contact['regionCode'])
           .collection('users')
           .doc(contact.id)
           .collection('conversations')
-          .doc(contactSnapshot.data()['conversationID'])
+          .doc(contactSnapshot['conversationID'])
           .set({
         'conversationWith': name,
       }, SetOptions(merge: true));
@@ -201,7 +201,7 @@ updateAllDisplayPictureAppearences(User user, String displayPictureUrl) async {
   contacts.docs.forEach((contact) async {
     ref
         .collection('users')
-        .doc(contact.data()['regionCode'])
+        .doc(contact['regionCode'])
         .collection('users')
         .doc(contact.id)
         .collection('contacts')
@@ -209,21 +209,21 @@ updateAllDisplayPictureAppearences(User user, String displayPictureUrl) async {
         .set({'displayPictureUrl': displayPictureUrl}, SetOptions(merge: true));
     final contactSnapshot = await (ref
         .collection('users')
-        .doc(contact.data()['regionCode'])
+        .doc(contact['regionCode'])
         .collection('users')
         .doc(contact.id)
         .collection('contacts')
         .doc(user.userID)
         .get());
-    final conversationID = contactSnapshot.data()['conversationID'];
+    final conversationID = contactSnapshot['conversationID'];
     if (conversationID != null) {
       ref
           .collection('users')
-          .doc(contact.data()['regionCode'])
+          .doc(contact['regionCode'])
           .collection('users')
           .doc(contact.id)
           .collection('conversations')
-          .doc(contactSnapshot.data()['conversationID'])
+          .doc(contactSnapshot['conversationID'])
           .set({
         'displayPictureUrl': displayPictureUrl,
       }, SetOptions(merge: true));

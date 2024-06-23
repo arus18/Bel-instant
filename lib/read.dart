@@ -4,16 +4,15 @@ import 'package:flutter/material.dart';
 class Read extends StatelessWidget {
   final String userIDwhoCreatedThisMsg;
   final String conversationID;
-  
+
   final String msgID;
   final String userID;
   const Read(
-      
-      {Key key,
-      this.userIDwhoCreatedThisMsg,
-      this.conversationID,
-      this.msgID,
-      this.userID})
+      {Key? key,
+      required this.userIDwhoCreatedThisMsg,
+      required this.conversationID,
+      required this.msgID,
+      required this.userID})
       : super(key: key);
   @override
   Widget build(BuildContext context) {
@@ -27,7 +26,7 @@ class Read extends StatelessWidget {
       stream: _readBy.snapshots(),
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (snapshot.hasData) {
-          final readBy = snapshot.data.docs;
+          final readBy = snapshot.data!.docs;
           final read = readBy.any((readBy) {
             return (readBy.id != userIDwhoCreatedThisMsg);
           });

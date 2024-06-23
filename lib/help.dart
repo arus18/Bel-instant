@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:interactive_message/displayPictureAndName.dart';
-import 'package:interactive_message/user.dart';
+import 'displayPictureAndName.dart';
+import 'user.dart';
 
 class Help extends StatelessWidget {
   final User user;
-  const Help({Key key, this.user}) : super(key: key);
+  const Help({Key? key, required this.user}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return Scaffold(

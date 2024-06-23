@@ -7,5 +7,5 @@ class User {
   String profilePhotUrl;
   final String token;
   User(this.userName, this.phoneNumber, this.countryCode, this.userID,
-      this.regionCode, this.profilePhotUrl,this.token);
+      this.regionCode, this.profilePhotUrl, this.token);
 }

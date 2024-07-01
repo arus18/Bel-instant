@@ -92,7 +92,7 @@ class ImageView extends StatefulWidget {
 }
 
 class ImageViewState extends State<ImageView> {
-  late Task _task;
+  late Task _task = Task();
   ReceivePort _port = ReceivePort();
   final String fileName;
   final String mediaUrl;
@@ -105,7 +105,7 @@ class ImageViewState extends State<ImageView> {
     super.initState();
     _init();
     _bindBackgroundIsolate();
-    FlutterDownloader.registerCallback(downloadCallback as DownloadCallback);
+    FlutterDownloader.registerCallback(downloadCallback);
   }
 
   void _bindBackgroundIsolate() {
@@ -135,8 +135,7 @@ class ImageViewState extends State<ImageView> {
     IsolateNameServer.removePortNameMapping('downloader_send_port');
   }
 
-  static void downloadCallback(
-      String id, DownloadTaskStatus status, int progress) {
+  static void downloadCallback(String id, int status, int progress) {
     final SendPort? send =
         IsolateNameServer.lookupPortByName('downloader_send_port');
     send!.send([id, status, progress]);

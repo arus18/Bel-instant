@@ -52,12 +52,12 @@ class ProfileViewState extends State<ProfileView> {
                       ? Container()
                       : SizedBox(
                           height: height / 2,
-                          child: (_imagePath.isNotEmpty)
-                              ? user.profilePhotUrl.isEmpty
-                                  ? Container()
-                                  : CachedNetworkImage(
-                                      imageUrl: user.profilePhotUrl)
-                              : Image(image: FileImage(File(_imagePath))))),
+                          child: (_imagePath.toString().isEmpty)
+                              ? CachedNetworkImage(
+                                  imageUrl: user.profilePhotUrl.toString())
+                              : Image(
+                                  image:
+                                      FileImage(File(_imagePath.toString()))))),
               _uploading
                   ? LoadingBumpingLine.circle(
                       backgroundColor: Colors.yellow,

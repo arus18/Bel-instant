@@ -1,4 +1,4 @@
-package com.bel.instant
+package interactive.message.belinstant
 
 import io.flutter.embedding.android.FlutterActivity
 

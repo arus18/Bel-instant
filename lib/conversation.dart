@@ -597,16 +597,35 @@ class ConversationState extends State<Conversation>
                           index = (index < 0) ? 0 : index;
                           final msgSnapShot = snapshot.data!.docs[index];
                           final msgType = msgSnapShot['msgType'];
-                          final isCustom = msgSnapShot['isCustom'] ?? false;
-                          final userIDwhoCreatedMsg = msgSnapShot['userID'];
-                          final fileSize = msgSnapShot['fileSize'];
-                          final userNameWhoCreated = msgSnapShot['name'];
+                          final isCustom =
+                              msgSnapShot.data().toString().contains('isCustom')
+                                  ? msgSnapShot.get('isCustom')
+                                  : false;
+                          final userIDwhoCreatedMsg =
+                              msgSnapShot.data().toString().contains('userID')
+                                  ? msgSnapShot.get('userID')
+                                  : '';
+                          final fileSize =
+                              msgSnapShot.data().toString().contains('fileSize')
+                                  ? msgSnapShot.get('fileSize')
+                                  : '';
+                          final userNameWhoCreated =
+                              msgSnapShot.data().toString().contains('name')
+                                  ? msgSnapShot.get('name')
+                                  : '';
                           final timeMsgCreated = msgSnapShot['timestamp'];
-                          final int twentiethMsgTimestamp =
-                              msgSnapShot['twentiethMsgTimestamp'];
+                          final int twentiethMsgTimestamp = msgSnapShot
+                                  .data()
+                                  .toString()
+                                  .contains('twentiethMsgTimestamp')
+                              ? msgSnapShot.get('twentiethMsgTimestamp')
+                              : 0;
                           if (msgType == 'updateInfo' ||
                               msgType == 'dateInfo') {
-                            final userID = msgSnapShot['userID'];
+                            final userID =
+                                msgSnapShot.data().toString().contains('userID')
+                                    ? msgSnapShot.get('userID')
+                                    : '';
 
                             if (userID != null) {
                               String info = '';
@@ -720,7 +739,9 @@ class ConversationState extends State<Conversation>
                             );
                           }
                           final Map<String, dynamic> urlList =
-                              msgSnapShot['urls'];
+                              msgSnapShot.data().toString().contains('urls')
+                                  ? msgSnapShot.get('urls')
+                                  : {};
 
                           // ignore: unnecessary_null_comparison
                           if (urlList != null && urlList.length >= 4) {

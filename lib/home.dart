@@ -53,6 +53,7 @@ class _HomeState extends State<HomeState> {
       actions: <Widget>[
         IconButton(
           onPressed: () {
+            //print(widget.user.profilePhotUrl);
             Navigator.push(context,
                 MaterialPageRoute(builder: (BuildContext context) {
               return ProfileView(

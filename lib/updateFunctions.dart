@@ -148,8 +148,11 @@ updateAllNameAppearences(User user, String name) async {
         .collection('contacts')
         .doc(user.userID)
         .get());
-    final conversationID = contactSnapshot['conversationID'];
-    if (conversationID != null) {
+    final conversationID =
+        contactSnapshot.data().toString().contains('conversationID')
+            ? contactSnapshot.get('conversationID')
+            : '';
+    if (conversationID.toString().isNotEmpty) {
       ref
           .collection('users')
           .doc(contact['regionCode'])
@@ -215,8 +218,11 @@ updateAllDisplayPictureAppearences(User user, String displayPictureUrl) async {
         .collection('contacts')
         .doc(user.userID)
         .get());
-    final conversationID = contactSnapshot['conversationID'];
-    if (conversationID != null) {
+    final conversationID =
+        contactSnapshot.data().toString().contains('conversationID')
+            ? contactSnapshot.get('conversationID')
+            : '';
+    if (conversationID.toString().isNotEmpty) {
       ref
           .collection('users')
           .doc(contact['regionCode'])

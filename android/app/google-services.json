@@ -8,35 +8,6 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:176756455192:android:2c41c1aebe0bbdbc1b906d",
-        "android_client_info": {
-          "package_name": "com.bel.instant"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "176756455192-97t7pg4mj6k7gcanojg5k5kmuhnm3ui1.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyDaXS8X9VTpjSqizvsVbspAW6DJvEL-KG4"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "176756455192-97t7pg4mj6k7gcanojg5k5kmuhnm3ui1.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
         "mobilesdk_app_id": "1:176756455192:android:19507e22bf7d62a31b906d",
         "android_client_info": {
           "package_name": "com.example.interactive_message"
@@ -82,36 +53,12 @@
     },
     {
       "client_info": {
-        "mobilesdk_app_id": "1:176756455192:android:380b51e17b34b1c81b906d",
+        "mobilesdk_app_id": "1:176756455192:android:1ee061f1e4c7e93f1b906d",
         "android_client_info": {
           "package_name": "interactive.message.belinstant"
         }
       },
       "oauth_client": [
-        {
-          "client_id": "176756455192-h11dmasvauttk5fcudaprmou2649ssjf.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "interactive.message.belinstant",
-            "certificate_hash": "e0549a43dfc9d9dc23b50768810347d53f326e6e"
-          }
-        },
-        {
-          "client_id": "176756455192-hful222odacn1dqdk3d1rcr4vpblio50.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "interactive.message.belinstant",
-            "certificate_hash": "63f66c7e3d6e65e72c8e499448783bfe36f39a89"
-          }
-        },
-        {
-          "client_id": "176756455192-sdia4lc8tj34ciq0iug7f4bpst5c7l1u.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "interactive.message.belinstant",
-            "certificate_hash": "ec2a22d032fe67a37e991cc8c9a6b0293c7e7268"
-          }
-        },
         {
           "client_id": "176756455192-97t7pg4mj6k7gcanojg5k5kmuhnm3ui1.apps.googleusercontent.com",
           "client_type": 3

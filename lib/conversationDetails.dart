@@ -39,7 +39,7 @@ class ConversationDetails extends StatefulWidget {
 }
 
 class ConversationDetailsState extends State<ConversationDetails> {
-  late QuerySnapshot _participants;
+  QuerySnapshot? _participants;
   bool _sendNotifications = false;
   late bool _isBlocked;
   bool _noInternetConnection = false;
@@ -380,7 +380,7 @@ class ConversationDetailsState extends State<ConversationDetails> {
                           Container(
                               margin: EdgeInsets.all(3),
                               child: Text(
-                                  '${_participants.docs.length} participants')),
+                                  '${_participants!.docs.length} participants')),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: <Widget>[
@@ -442,9 +442,9 @@ class ConversationDetailsState extends State<ConversationDetails> {
                           (ListView.builder(
                             physics: NeverScrollableScrollPhysics(),
                             shrinkWrap: true,
-                            itemCount: (_participants.docs.length),
+                            itemCount: (_participants!.docs.length),
                             itemBuilder: (BuildContext context, index) {
-                              final participant = _participants.docs[index];
+                              final participant = _participants!.docs[index];
                               final String displayPictureUrl =
                                   participant['displayPictureUrl'] ?? '';
                               final name = participant['name'];
@@ -525,7 +525,7 @@ class ConversationDetailsState extends State<ConversationDetails> {
   }
 
   _updateAllDisplayPictureAppearences(String mediaUrl) {
-    _participants.docs.forEach((participant) {
+    _participants!.docs.forEach((participant) {
       final regionCode = participant['regionCode'];
       final userID = participant.id;
       FirebaseFirestore.instance
@@ -542,7 +542,7 @@ class ConversationDetailsState extends State<ConversationDetails> {
   }
 
   _updateAllNameAppearences(String name) {
-    _participants.docs.forEach((participant) {
+    _participants!.docs.forEach((participant) {
       final regionCode = participant['regionCode'];
       final userID = participant.id;
       FirebaseFirestore.instance

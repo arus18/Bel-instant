@@ -56,7 +56,8 @@ class InitializeDisplayPictureNameState
                       : SizedBox(
                           height: height / 2,
                           child: (_imagePath.isEmpty)
-                              ? Container()
+                              ? Image.network(
+                                  'https://firebasestorage.googleapis.com/v0/b/interactive-message-5a9a2.appspot.com/o/avatar-3814049_1280.png?alt=media&token=1eeb48e1-f3ae-4cf3-8f59-1453e2a5929d')
                               : Image(image: FileImage(File(_imagePath))))),
               Row(children: <Widget>[
                 IconButton(
@@ -144,7 +145,8 @@ class InitializeDisplayPictureNameState
                       setState(() {
                         _uploading = true;
                       });
-                      String mediaUrl = '';
+                      String mediaUrl =
+                          'https://firebasestorage.googleapis.com/v0/b/interactive-message-5a9a2.appspot.com/o/avatar-3814049_1280.png?alt=media&token=1eeb48e1-f3ae-4cf3-8f59-1453e2a5929d';
                       if (_imagePath.isNotEmpty) {
                         final ref = FirebaseStorage.instance.ref();
                         final fileName =
